@@ -287,7 +287,7 @@ function renderFeed(app) {
       fav.setAttribute('aria-label', t('FAVORITO_TITLE'));
       acoes.appendChild(fav);
 
-      const dep = botao(state.depois.includes(p.id) ? '\u2317' : '\u2314',
+      const dep = botao(state.depois.includes(p.id) ? '\u25f7' : '\u2314',
         () => marcar(p, 'depois'), state.depois.includes(p.id) ? 'ativo' : '');
       dep.setAttribute('aria-label', t('DEPOIS_TITLE'));
       acoes.appendChild(dep);

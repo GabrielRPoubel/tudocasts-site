@@ -140,7 +140,7 @@ async function carregar(inicial) {
     renderAuth();
     renderUsuarios();
     renderFeed();
-    if (inicial && NO_PAGES) msg(t('TERCEIROS'));
+    if (inicial && NO_PAGES) msg(state.me ? t('TERCEIROS') : t('CRIAR_CONTA_DICA'));
   } catch (e) {
     msg('', true);
     mostrarIndisponivel();

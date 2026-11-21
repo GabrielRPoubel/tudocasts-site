@@ -67,6 +67,33 @@ function botao(texto, acao, classe) {
   return b;
 }
 
+function icone(tipo, preenchido) {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('width', '20');
+  svg.setAttribute('height', '20');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.setAttribute('fill', preenchido ? 'currentColor' : 'none');
+  svg.setAttribute('stroke', 'currentColor');
+  svg.setAttribute('stroke-width', '2');
+  svg.setAttribute('stroke-linecap', 'round');
+  svg.setAttribute('stroke-linejoin', 'round');
+
+  if (tipo === 'star') {
+    const forma = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    forma.setAttribute('points', '12,2 15,9 22,9.5 17,14 18.5,21 12,17 5.5,21 7,14 2,9.5 9,9');
+    svg.appendChild(forma);
+  } else {
+    const circulo = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circulo.setAttribute('cx', '12'); circulo.setAttribute('cy', '12'); circulo.setAttribute('r', '9');
+    const ponteiros = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    ponteiros.setAttribute('d', 'M12 7v5l3 2');
+    svg.appendChild(circulo);
+    svg.appendChild(ponteiros);
+  }
+  return svg;
+}
+
 function linkTexto(texto, href, classe) {
   const a = el('a', classe || null, texto);
   a.href = href;
@@ -161,7 +188,7 @@ function render() {
   return renderFeed(app);
 }
 
-async function carregar() {
+async function carregar(inicial) {
   try {
     const lang = state.view === 'favoritos' || state.view === 'depois' ? 'all' : idiomaAtual;
     const filtro = state.filtroUsuario ? '&user=' + encodeURIComponent(state.filtroUsuario) : '';
@@ -178,6 +205,7 @@ async function carregar() {
     } else {
       render();
     }
+    if (inicial) msg(state.me ? t('TERCEIROS') : t('CRIAR_CONTA_DICA'));
   } catch (e) {
     msg(t('FALHA_CARREGAR', e.message), true);
   }
@@ -232,13 +260,15 @@ function renderFeed(app) {
     acoes.appendChild(botao(t('DOWNLOAD'), () => baixar(p)));
 
     if (state.me) {
-      const fav = botao(state.favoritos.includes(p.id) ? '★' : '☆', () => marcar(p, 'favorito'),
+      const fav = botao('', () => marcar(p, 'favorito'),
         state.favoritos.includes(p.id) ? 'ativo' : '');
+      fav.appendChild(icone('star', state.favoritos.includes(p.id)));
       fav.setAttribute('aria-label', t('FAVORITO_TITLE'));
       acoes.appendChild(fav);
 
-      const dep = botao(state.depois.includes(p.id) ? '◷' : '◴', () => marcar(p, 'depois'),
+      const dep = botao('', () => marcar(p, 'depois'),
         state.depois.includes(p.id) ? 'ativo' : '');
+      dep.appendChild(icone('clock', state.depois.includes(p.id)));
       dep.setAttribute('aria-label', t('DEPOIS_TITLE'));
       acoes.appendChild(dep);
     }
@@ -680,5 +710,5 @@ window.addEventListener('error', () => msg('', true));
 (async function iniciar() {
   await descobrirApi();
   aplicarTraducao();
-  carregar();
+  carregar(true);
 })();

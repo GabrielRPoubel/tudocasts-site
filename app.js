@@ -59,7 +59,7 @@ function link(texto, acao) {
   return a;
 }
 
-async function carregar() {
+async function carregar(inicial) {
   try {
     const consulta = state.filter ? '?user=' + encodeURIComponent(state.filter) : '';
     const [eu, usuarios, episodios] = await Promise.all([
@@ -73,6 +73,7 @@ async function carregar() {
     renderAuth();
     renderUsuarios();
     renderFeed();
+    if (inicial && NO_PAGES) msg('CONECTADO AO SERVIDOR LOCAL :: localhost:3000');
   } catch (e) {
     msg('FALHA AO CARREGAR: ' + e.message, true);
   }
@@ -341,4 +342,4 @@ api('/api/hits')
   .then((d) => { $('hits').textContent = d.hits; })
   .catch(() => { $('hits').textContent = '???'; });
 
-carregar();
+carregar(true);

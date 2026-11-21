@@ -29,6 +29,7 @@ const state = {
   busca: '',
   ordemAsc: false,
   tocando: null,
+  imagemPara: null,
 };
 
 const MSG_INDISPONIVEL = 'Servidor indisponível. Manutenção em breve. Por favor, volte mais tarde.';
@@ -262,6 +263,8 @@ function renderFeed() {
       ctrls.appendChild(link('[' + (p.isPublic ? 'privado' : 'público') + ']', () => alternar(p)));
       ctrls.appendChild(document.createTextNode(' '));
       ctrls.appendChild(link('[apagar]', () => apagar(p)));
+      ctrls.appendChild(document.createTextNode(' '));
+      ctrls.appendChild(link('[imagem]', () => escolherImagem(p)));
       tdTitulo.appendChild(ctrls);
     }
     tr.appendChild(tdTitulo);
@@ -349,6 +352,27 @@ async function apagar(p) {
     await api('/api/podcasts/' + encodeURIComponent(p.id), { method: 'DELETE' });
     if (state.tocando === p.id) { player.pause(); player.removeAttribute('src'); state.tocando = null; }
     msg('EPISÓDIO APAGADO.');
+    carregar();
+  } catch (e) { msg(e.message, e.status ? false : true); }
+}
+
+function escolherImagem(p) {
+  state.imagemPara = p.id;
+  $('troca-imagem').value = '';
+  $('troca-imagem').click();
+}
+
+async function trocarImagem() {
+  const arquivo = $('troca-imagem').files[0];
+  const id = state.imagemPara;
+  state.imagemPara = null;
+  if (!arquivo || !id) return;
+  if (arquivo.size > 1024 * 1024) return msg('A IMAGEM PRECISA TER NO MÁXIMO 1MB.');
+  const dados = new FormData();
+  dados.append('imagem', arquivo);
+  try {
+    await api('/api/podcasts/' + encodeURIComponent(id) + '/image', { method: 'POST', body: dados });
+    msg('IMAGEM ATUALIZADA.');
     carregar();
   } catch (e) { msg(e.message, e.status ? false : true); }
 }
@@ -502,6 +526,7 @@ $('descricao').addEventListener('input', () => {
   $('descricao-contador').textContent = (300 - $('descricao').value.length) + ' letras restantes';
 });
 $('btn-upload-panel').addEventListener('click', alternarUpload);
+$('troca-imagem').addEventListener('change', trocarImagem);
 $('btn-favoritos').addEventListener('click', () => abrirLista('favoritos'));
 $('btn-depois').addEventListener('click', () => abrirLista('depois'));
 

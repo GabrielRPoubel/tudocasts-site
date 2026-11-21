@@ -209,30 +209,43 @@ async function main() {
 
     if (eu) $('form-comentario').hidden = false;
 
-    if (eu && eu.mod) {
+    if (eu && (episodio.mine || eu.mod)) {
       const acoes = $('acoes');
-      const removerImagem = link('[remover imagem]', '#');
-      removerImagem.addEventListener('click', async (e) => {
+      if (episodio.image) {
+        const removerImagem = link('[remover imagem]', '#');
+        removerImagem.addEventListener('click', async (e) => {
+          e.preventDefault();
+          try {
+            await api('/api/podcasts/' + encodeURIComponent(episodio.id) + '/image', { method: 'DELETE' });
+            $('capa').hidden = true;
+            $('sem-capa').hidden = false;
+            statusEp('IMAGEM REMOVIDA.');
+          } catch (err) { statusEp(err.status >= 400 && err.status < 500 ? err.message : '', !err.status); }
+        });
+        acoes.appendChild(removerImagem);
+        acoes.appendChild(document.createTextNode(' '));
+      }
+      const trocarImagem = link('[trocar imagem]', '#');
+      trocarImagem.addEventListener('click', (e) => {
         e.preventDefault();
-        try {
-          await api('/api/podcasts/' + encodeURIComponent(episodio.id) + '/image', { method: 'DELETE' });
-          $('capa').hidden = true;
-          $('sem-capa').hidden = false;
-          statusEp('IMAGEM REMOVIDA.');
-        } catch (err) { statusEp(err.status >= 400 && err.status < 500 ? err.message : '', !err.status); }
+        $('troca-imagem-ep').value = '';
+        $('troca-imagem-ep').click();
       });
-      const apagarEpisodio = link('[apagar episódio]', '#');
-      apagarEpisodio.addEventListener('click', async (e) => {
-        e.preventDefault();
-        if (!confirm('APAGAR ESSE EPISÓDIO?')) return;
-        try {
-          await api('/api/podcasts/' + encodeURIComponent(episodio.id), { method: 'DELETE' });
-          location.href = BASE_PATH + '/';
-        } catch (err) { statusEp('', !err.status); }
-      });
-      acoes.appendChild(removerImagem);
-      acoes.appendChild(document.createTextNode(' '));
-      acoes.appendChild(apagarEpisodio);
+      acoes.appendChild(trocarImagem);
+
+      if (eu.mod) {
+        acoes.appendChild(document.createTextNode(' '));
+        const apagarEpisodio = link('[apagar episódio]', '#');
+        apagarEpisodio.addEventListener('click', async (e) => {
+          e.preventDefault();
+          if (!confirm('APAGAR ESSE EPISÓDIO?')) return;
+          try {
+            await api('/api/podcasts/' + encodeURIComponent(episodio.id), { method: 'DELETE' });
+            location.href = BASE_PATH + '/';
+          } catch (err) { statusEp('', !err.status); }
+        });
+        acoes.appendChild(apagarEpisodio);
+      }
     }
 
     await carregarComentarios();
@@ -240,6 +253,18 @@ async function main() {
     statusEp('', !e.status);
   }
 }
+
+$('troca-imagem-ep').addEventListener('change', async () => {
+  const arquivo = $('troca-imagem-ep').files[0];
+  if (!arquivo || !episodio) return;
+  if (arquivo.size > 1024 * 1024) return statusEp('A IMAGEM PRECISA TER NO MÁXIMO 1MB.');
+  const dados = new FormData();
+  dados.append('imagem', arquivo);
+  try {
+    await api('/api/podcasts/' + encodeURIComponent(episodio.id) + '/image', { method: 'POST', body: dados });
+    location.reload();
+  } catch (e) { statusEp(e.status >= 400 && e.status < 500 ? e.message : '', !e.status); }
+});
 
 $('btn-comentar').addEventListener('click', comentar);
 $('texto-comentario').addEventListener('keydown', (e) => { if (e.key === 'Enter') comentar(); });

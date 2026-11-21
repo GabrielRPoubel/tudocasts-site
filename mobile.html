@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#000000">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <title>TUDOCASTS Ã‚Â· MOBILE</title>
+  <title>TUDOCASTS · MOBILE</title>
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="apple-touch-icon" href="favicon.png">
   <link rel="manifest" href="manifest.webmanifest">
@@ -34,7 +34,7 @@
 
 <header class="topo">
   <div class="topo-principal">
-    <button id="btn-voltar" class="btn-icone" type="button" aria-label="Voltar" hidden>Ã¢â€ Â</button>
+    <button id="btn-voltar" class="btn-icone" type="button" aria-label="Voltar" hidden>←</button>
     <h1 id="titulo-app">TUDOCASTS</h1>
     <button id="btn-idioma" class="btn-icone" type="button" aria-label="Idioma" aria-expanded="false">
       <svg width="20" height="20" viewBox="0 0 7 7" shape-rendering="crispEdges" aria-hidden="true">
@@ -56,7 +56,7 @@
   </nav>
 
   <div id="busca-box">
-    <label class="sr-only" for="busca" data-i18n="BUSCA">TÃƒÂTULO, DESCRIÃƒâ€¡ÃƒÆ’O OU AUTOR...</label>
+    <label class="sr-only" for="busca" data-i18n="BUSCA">TÍTULO, DESCRIÇÃO OU AUTOR...</label>
     <input id="busca" type="search" autocomplete="off" enterkeyhint="search">
   </div>
 
@@ -65,12 +65,22 @@
 
 <main id="app" tabindex="-1"></main>
 
-<nav id="nav-inferior" class="nav-inferior" aria-label="NavegaÃƒÂ§ÃƒÂ£o principal">
-  <button type="button" data-aba="feed" aria-label="Feed" title="Feed"><span aria-hidden="true">Ã¢ËœÂ°</span></button>
-  <button type="button" data-aba="favoritos" aria-label="Favoritos" title="Favoritos"><span aria-hidden="true">Ã¢Ëœâ€¦</span></button>
-  <button type="button" data-aba="depois" aria-label="Ver depois" title="Ver depois"><span aria-hidden="true">Ã¢â€”Â·</span></button>
-  <button type="button" data-aba="upload" aria-label="Upload" title="Upload"><span aria-hidden="true">Ã¢â€ â€˜</span></button>
-  <button type="button" data-aba="conta" aria-label="Conta" title="Conta"><span aria-hidden="true">Ã¢â€”Å½</span></button>
+<nav id="nav-inferior" class="nav-inferior" aria-label="Navegação principal">
+  <button type="button" data-aba="feed" aria-label="Feed" title="Feed">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+  </button>
+  <button type="button" data-aba="favoritos" aria-label="Favoritos" title="Favoritos">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12,2 15,9 22,9.5 17,14 18.5,21 12,17 5.5,21 7,14 2,9.5 9,9"/></svg>
+  </button>
+  <button type="button" data-aba="depois" aria-label="Ver depois" title="Ver depois">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+  </button>
+  <button type="button" data-aba="upload" aria-label="Upload" title="Upload">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+  </button>
+  <button type="button" data-aba="conta" aria-label="Conta" title="Conta">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+  </button>
 </nav>
 
 <input id="troca-imagem" type="file" accept="image/*" hidden>

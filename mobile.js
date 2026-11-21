@@ -127,10 +127,12 @@ function urlEp(p) {
 }
 
 function urlUsuario(login) {
-  return urlComIdioma('/mobile/?user=' + encodeURIComponent(login));
+  return urlComIdioma('/mobile.html?user=' + encodeURIComponent(login));
 }
 
 function caminhos() {
+  const ep = new URLSearchParams(location.search).get('ep');
+  if (ep) return ep.split('/').filter(Boolean);
   const partes = location.pathname.split('/').filter(Boolean);
   if (partes[0] === 'mobile') partes.shift();
   return partes;
@@ -444,7 +446,7 @@ async function renderEpisodio(app) {
         if (!confirm(t('APAGAR_EP_CONFIRMA'))) return;
         try {
           await api('/api/podcasts/' + encodeURIComponent(p.id), { method: 'DELETE' });
-          location.href = urlComIdioma('/mobile/');
+          location.href = urlComIdioma('/mobile.html');
         } catch (e) { msg(tErro(e.message), !e.status); }
       }));
     }
@@ -501,7 +503,7 @@ async function renderEpisodio(app) {
   }
   await carregarComentarios();
 
-  app.appendChild(linkTexto(t('VOLTAR_FEED'), urlComIdioma('/mobile/'), 'voltar-feed'));
+  app.appendChild(linkTexto(t('VOLTAR_FEED'), urlComIdioma('/mobile.html'), 'voltar-feed'));
 }
 
 function tocar(p) {
@@ -657,7 +659,7 @@ async function sair() {
 $('btn-voltar').addEventListener('click', () => {
   if (state.view === 'episodio') {
     if (document.referrer && document.referrer.includes('/mobile')) history.back();
-    else location.href = urlComIdioma('/mobile/');
+    else location.href = urlComIdioma('/mobile.html');
   } else {
     irPara('feed');
   }

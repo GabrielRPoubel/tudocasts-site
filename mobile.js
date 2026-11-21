@@ -123,7 +123,10 @@ function slug(texto) {
 }
 
 function urlEp(p) {
-  return urlComIdioma('/mobile/' + encodeURIComponent(p.ownerLogin) + '/' + encodeURIComponent(slug(p.title)));
+  const parametros = new URLSearchParams();
+  parametros.set('lang', idiomaAtual);
+  if (new URLSearchParams(location.search).has('mobile')) parametros.set('mobile', '1');
+  return '/mobile/' + encodeURIComponent(p.ownerLogin) + '/' + encodeURIComponent(slug(p.title)) + '?' + parametros.toString();
 }
 
 function urlUsuario(login) {

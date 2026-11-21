@@ -4,21 +4,14 @@ const $ = (id) => document.getElementById(id);
 const player = $('player');
 const token = localStorage.getItem('podcast_exe_token') || '';
 
-const DOMINIOS_PUBLICADOS = [
-  'gabrielrpoubel.github.io',
-  'tudocasts.com.br',
-  'www.tudocasts.com.br',
-  'tudocasts.com',
-  'www.tudocasts.com',
-];
-const NO_PAGES = DOMINIOS_PUBLICADOS.includes(location.hostname.toLowerCase());
+const NO_PAGES = ['gabrielrpoubel.github.io', 'tudocasts.com.br', 'www.tudocasts.com.br', 'tudocasts.com', 'www.tudocasts.com']
+  .includes(location.hostname.toLowerCase());
 const API_BASE = NO_PAGES ? 'http://localhost:3000' : '';
 const BASE_PATH = location.pathname.startsWith('/tudocasts-site') ? '/tudocasts-site' : '';
-const MSG_INDISPONIVEL = 'Servidor indisponível. Manutenção em breve. Por favor, volte mais tarde.';
 
 function statusEp(texto, erro) {
   const el = $('status-ep');
-  el.textContent = erro ? MSG_INDISPONIVEL : texto;
+  el.textContent = erro ? t('INDISPONIVEL') : texto;
   el.style.color = erro ? '#fff' : '#b3b3b3';
 }
 
@@ -47,11 +40,11 @@ function slug(texto) {
 }
 
 function urlEpisodio(p) {
-  return BASE_PATH + '/' + encodeURIComponent(p.ownerLogin) + '/' + encodeURIComponent(slug(p.title));
+  return urlComIdioma(BASE_PATH + '/' + encodeURIComponent(p.ownerLogin) + '/' + encodeURIComponent(slug(p.title)));
 }
 
 function urlDoAutor(login) {
-  return BASE_PATH + '/?user=' + encodeURIComponent(login);
+  return urlComIdioma(BASE_PATH + '/?user=' + encodeURIComponent(login));
 }
 
 function tempo(segundos) {
@@ -66,11 +59,19 @@ function no(tag, classe, texto) {
   return el;
 }
 
-function link(texto, href, externo) {
+function link(texto, href) {
   const a = no('a', null, texto);
   a.href = href;
-  if (externo) { a.target = '_blank'; a.rel = 'noopener'; }
   return a;
+}
+
+function aplicarTraducao() {
+  document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
+  document.documentElement.lang = idiomaAtual;
+  document.querySelectorAll('#menu-idioma button').forEach((b) => {
+    b.classList.toggle('ativo', b.dataset.lang === idiomaAtual);
+  });
+  $('texto-comentario').placeholder = t('SEU_COMENTARIO');
 }
 
 let episodio = null;
@@ -80,18 +81,19 @@ function renderComentarios(lista) {
   const box = $('comentarios');
   box.textContent = '';
   if (lista.length === 0) {
-    box.appendChild(no('div', 'vazio', 'NINGUÉM COMENTOU AINDA.'));
+    box.appendChild(no('div', 'vazio', t('SEM_COMENTARIOS')));
     return;
   }
+  const locale = idiomaAtual === 'en' ? 'en-US' : idiomaAtual === 'es' ? 'es-ES' : 'pt-BR';
   for (const c of lista) {
     const div = no('div', 'comentario');
     const cab = no('div');
     const autorComentario = link('@' + c.userLogin, urlDoAutor(c.userLogin));
     autorComentario.className = 'quem';
     cab.appendChild(autorComentario);
-    cab.appendChild(no('span', 'data', new Date(c.createdAt).toLocaleString('pt-BR')));
+    cab.appendChild(no('span', 'data', new Date(c.createdAt).toLocaleString(locale)));
     if (c.removivel) {
-      const apagar = link(' [remover]', '#');
+      const apagar = link(' ' + t('REMOVER'), '#');
       apagar.addEventListener('click', async (e) => {
         e.preventDefault();
         try {
@@ -115,16 +117,16 @@ async function carregarComentarios() {
 
 async function comentar() {
   const texto = $('texto-comentario').value.trim();
-  if (!texto) return statusEp('ESCREVA ALGO ANTES DE COMENTAR.');
+  if (!texto) return statusEp(t('ESCREVA'));
   try {
     await api('/api/podcasts/' + encodeURIComponent(episodio.id) + '/comments', {
       method: 'POST', body: JSON.stringify({ texto }),
     });
     $('texto-comentario').value = '';
     await carregarComentarios();
-    statusEp('COMENTÁRIO PUBLICADO.');
+    statusEp(t('COMENTARIO_OK'));
   } catch (e) {
-    statusEp(e.status >= 400 && e.status < 500 ? e.message : '', !e.status);
+    statusEp(e.status >= 400 && e.status < 500 ? tErro(e.message) : '', !e.status);
   }
 }
 
@@ -154,40 +156,42 @@ function configurarAudio() {
   for (const b of $('velocidades').querySelectorAll('button')) {
     b.addEventListener('click', () => {
       player.playbackRate = Number(b.dataset.v);
-      statusEp('VELOCIDADE ' + b.textContent);
+      statusEp(t('VELOCIDADE', b.textContent));
     });
   }
 }
 
 async function main() {
-  $('voltar').href = BASE_PATH + '/';
+  $('voltar').href = urlComIdioma(BASE_PATH + '/');
+  $('comentarios-titulo').textContent = t('COMENTARIOS');
+  $('btn-comentar').textContent = t('COMENTAR');
 
   const partes = location.pathname.split('/').filter(Boolean);
   if (partes[0] === 'tudocasts-site') partes.shift();
   if (partes.length < 2) {
-    statusEp('EPISÓDIO NÃO ENCONTRADO.');
+    statusEp(t('SEM_EP'));
     return;
   }
   const autor = decodeURIComponent(partes[0]);
   const titulo = decodeURIComponent(partes.slice(1).join('/'));
 
   try {
-    const [resultado, info] = await Promise.all([api('/api/podcasts'), api('/api/me')]);
+    const [resultado, info] = await Promise.all([api('/api/podcasts?lang=all'), api('/api/me')]);
     eu = info.user;
     episodio = resultado.find((p) => p.ownerLogin === autor && slug(p.title) === titulo);
     if (!episodio) {
-      statusEp('EPISÓDIO NÃO ENCONTRADO.');
+      statusEp(t('SEM_EP'));
       return;
     }
 
     $('pagina').hidden = false;
     $('status-ep').hidden = true;
     $('titulo').textContent = episodio.title;
-    $('autor').textContent = 'por ';
-    const autorLink = link('@' + episodio.ownerLogin, urlDoAutor(episodio.ownerLogin));
-    $('autor').appendChild(autorLink);
+    $('autor').textContent = '';
+    $('autor').appendChild(link('@' + episodio.ownerLogin, urlDoAutor(episodio.ownerLogin)));
     $('autor').appendChild(document.createTextNode(' · ' + tempo(episodio.duration)));
-    $('descricao').textContent = episodio.description || '(SEM DESCRIÇÃO)';
+    $('descricao').textContent = episodio.description || t('SEM_DESCRICAO');
+    $('sem-capa').textContent = t('SEM_IMAGEM');
 
     if (episodio.image) {
       $('capa').src = API_BASE + '/api/imagem/' + encodeURIComponent(episodio.image);
@@ -202,9 +206,9 @@ async function main() {
       .filter((p) => p.ownerLogin === episodio.ownerLogin)
       .sort((a, b) => b.createdAt - a.createdAt);
     const i = daSequencia.findIndex((p) => p.id === episodio.id);
-    if (i > 0) $('anterior').appendChild(link('<< ÚLTIMO EPISÓDIO', urlEpisodio(daSequencia[i - 1])));
+    if (i > 0) $('anterior').appendChild(link(t('ULTIMO'), urlEpisodio(daSequencia[i - 1])));
     if (i >= 0 && i < daSequencia.length - 1) {
-      $('proximo').appendChild(link('PRÓXIMO >>', urlEpisodio(daSequencia[i + 1])));
+      $('proximo').appendChild(link(t('PROXIMO'), urlEpisodio(daSequencia[i + 1])));
     }
 
     if (eu) $('form-comentario').hidden = false;
@@ -212,20 +216,20 @@ async function main() {
     if (eu && (episodio.mine || eu.mod)) {
       const acoes = $('acoes');
       if (episodio.image) {
-        const removerImagem = link('[remover imagem]', '#');
+        const removerImagem = link(t('REMOVER_IMG'), '#');
         removerImagem.addEventListener('click', async (e) => {
           e.preventDefault();
           try {
             await api('/api/podcasts/' + encodeURIComponent(episodio.id) + '/image', { method: 'DELETE' });
             $('capa').hidden = true;
             $('sem-capa').hidden = false;
-            statusEp('IMAGEM REMOVIDA.');
-          } catch (err) { statusEp(err.status >= 400 && err.status < 500 ? err.message : '', !err.status); }
+            statusEp(t('IMG_REMOVIDA'));
+          } catch (err) { statusEp(err.status >= 400 && err.status < 500 ? tErro(err.message) : '', !err.status); }
         });
         acoes.appendChild(removerImagem);
         acoes.appendChild(document.createTextNode(' '));
       }
-      const trocarImagem = link('[trocar imagem]', '#');
+      const trocarImagem = link(t('TROCAR_IMG'), '#');
       trocarImagem.addEventListener('click', (e) => {
         e.preventDefault();
         $('troca-imagem-ep').value = '';
@@ -235,13 +239,13 @@ async function main() {
 
       if (eu.mod) {
         acoes.appendChild(document.createTextNode(' '));
-        const apagarEpisodio = link('[apagar episódio]', '#');
+        const apagarEpisodio = link(t('APAGAR_EP'), '#');
         apagarEpisodio.addEventListener('click', async (e) => {
           e.preventDefault();
-          if (!confirm('APAGAR ESSE EPISÓDIO?')) return;
+          if (!confirm(t('APAGAR_EP_CONFIRMA'))) return;
           try {
             await api('/api/podcasts/' + encodeURIComponent(episodio.id), { method: 'DELETE' });
-            location.href = BASE_PATH + '/';
+            location.href = urlComIdioma(BASE_PATH + '/');
           } catch (err) { statusEp('', !err.status); }
         });
         acoes.appendChild(apagarEpisodio);
@@ -257,17 +261,27 @@ async function main() {
 $('troca-imagem-ep').addEventListener('change', async () => {
   const arquivo = $('troca-imagem-ep').files[0];
   if (!arquivo || !episodio) return;
-  if (arquivo.size > 1024 * 1024) return statusEp('A IMAGEM PRECISA TER NO MÁXIMO 1MB.');
+  if (arquivo.size > 1024 * 1024) return statusEp(t('IMG_GRANDE'));
   const dados = new FormData();
   dados.append('imagem', arquivo);
   try {
     await api('/api/podcasts/' + encodeURIComponent(episodio.id) + '/image', { method: 'POST', body: dados });
     location.reload();
-  } catch (e) { statusEp(e.status >= 400 && e.status < 500 ? e.message : '', !e.status); }
+  } catch (e) { statusEp(e.status >= 400 && e.status < 500 ? tErro(e.message) : '', !e.status); }
+});
+
+$('btn-idioma').addEventListener('click', () => { $('menu-idioma').hidden = !$('menu-idioma').hidden; });
+document.querySelectorAll('#menu-idioma button').forEach((b) => {
+  b.addEventListener('click', () => {
+    const destino = new URL(location.href);
+    destino.searchParams.set('lang', b.dataset.lang);
+    location.href = destino.toString();
+  });
 });
 
 $('btn-comentar').addEventListener('click', comentar);
 $('texto-comentario').addEventListener('keydown', (e) => { if (e.key === 'Enter') comentar(); });
 window.addEventListener('unhandledrejection', () => statusEp('', true));
 
+aplicarTraducao();
 main();

@@ -3,12 +3,19 @@
 const $ = (id) => document.getElementById(id);
 const player = $('player');
 
-// No Pages o site é estático e a API continua sendo o servidor local.
-const NO_PAGES = ['gabrielrpoubel.github.io', 'tudocasts.com.br', 'www.tudocasts.com.br', 'tudocasts.com', 'www.tudocasts.com']
-  .includes(location.hostname.toLowerCase());
-const API_BASE = NO_PAGES ? 'http://localhost:3000' : '';
-const BASE_PATH = location.pathname.startsWith('/tudocasts-site') ? '/tudocasts-site' : '';
-const PAGINA_MOBILE = BASE_PATH + '/mobile.html';
+const SITE_DOMAINS = ['gabrielrpoubel.github.io', 'tudocasts.com.br', 'www.tudocasts.com.br', 'tudocasts.com', 'www.tudocasts.com'];
+let API_BASE = '';
+
+async function descobrirApi() {
+  if (!SITE_DOMAINS.includes(location.hostname.toLowerCase())) return;
+  try {
+    const resposta = await fetch('/tunnel-url.json', { cache: 'no-store' });
+    if (resposta.ok) {
+      const dados = await resposta.json();
+      if (dados.url && /^https:\/\/[a-z0-9-]+\.trycloudflare\.com$/i.test(dados.url)) API_BASE = dados.url;
+    }
+  } catch (_) { /* sem URL publicada */ }
+}
 
 const state = {
   token: localStorage.getItem('podcast_exe_token') || '',
@@ -35,9 +42,7 @@ async function api(caminho, opcoes = {}) {
   const headers = Object.assign({}, opcoes.headers || {});
   if (state.token) headers.Authorization = 'Bearer ' + state.token;
   if (opcoes.body && !(opcoes.body instanceof FormData)) headers['Content-Type'] = 'application/json';
-  const init = { ...opcoes, headers };
-  if (NO_PAGES) init.targetAddressSpace = 'loopback';
-  const resposta = await fetch(API_BASE + caminho, init);
+  const resposta = await fetch(API_BASE + caminho, { ...opcoes, headers });
   let dados = {};
   try { dados = await resposta.json(); } catch (_) { /* resposta sem JSON */ }
   if (!resposta.ok) {
@@ -91,17 +96,17 @@ function slug(texto) {
 }
 
 function urlEp(p) {
-  return urlComIdioma(PAGINA_MOBILE + '?ep=' + encodeURIComponent(p.ownerLogin + '/' + slug(p.title)));
+  return urlComIdioma('/mobile/' + encodeURIComponent(p.ownerLogin) + '/' + encodeURIComponent(slug(p.title)));
 }
 
 function urlUsuario(login) {
-  return urlComIdioma(PAGINA_MOBILE + '?user=' + encodeURIComponent(login));
+  return urlComIdioma('/mobile/?user=' + encodeURIComponent(login));
 }
 
-// Episódio vem em ?ep=usuario/slug: o Pages não tem rotas /mobile/...
 function caminhos() {
-  const ep = new URLSearchParams(location.search).get('ep') || '';
-  return ep.split('/').filter(Boolean);
+  const partes = location.pathname.split('/').filter(Boolean);
+  if (partes[0] === 'mobile') partes.shift();
+  return partes;
 }
 
 function aplicarTraducao() {
@@ -331,7 +336,7 @@ async function renderEpisodio(app) {
   const capas = el('div', 'capas');
   if (p.image) {
     const img = el('img', 'capa');
-    img.src = '/api/imagem/' + encodeURIComponent(p.image);
+    img.src = API_BASE + '/api/imagem/' + encodeURIComponent(p.image);
     img.alt = p.title;
     capas.appendChild(img);
   } else {
@@ -355,7 +360,7 @@ async function renderEpisodio(app) {
   app.appendChild(playerLinha);
 
   const sufixo = p.isPublic ? '' : '?token=' + encodeURIComponent(state.token);
-  player.src = '/api/podcasts/' + encodeURIComponent(p.id) + '/stream' + sufixo;
+  player.src = API_BASE + '/api/podcasts/' + encodeURIComponent(p.id) + '/stream' + sufixo;
   play.addEventListener('click', () => {
     if (player.paused) player.play().catch(() => msg('', true));
     else player.pause();
@@ -409,7 +414,7 @@ async function renderEpisodio(app) {
         if (!confirm(t('APAGAR_EP_CONFIRMA'))) return;
         try {
           await api('/api/podcasts/' + encodeURIComponent(p.id), { method: 'DELETE' });
-          location.href = urlComIdioma(PAGINA_MOBILE);
+          location.href = urlComIdioma('/mobile/');
         } catch (e) { msg(tErro(e.message), !e.status); }
       }));
     }
@@ -466,7 +471,7 @@ async function renderEpisodio(app) {
   }
   await carregarComentarios();
 
-  app.appendChild(linkTexto(t('VOLTAR_FEED'), urlComIdioma(PAGINA_MOBILE), 'voltar-feed'));
+  app.appendChild(linkTexto(t('VOLTAR_FEED'), urlComIdioma('/mobile/'), 'voltar-feed'));
 }
 
 function tocar(p) {
@@ -474,14 +479,14 @@ function tocar(p) {
     player.pause(); state.tocando = null; render(); return;
   }
   const sufixo = p.isPublic ? '' : '?token=' + encodeURIComponent(state.token);
-  player.src = '/api/podcasts/' + encodeURIComponent(p.id) + '/stream' + sufixo;
+  player.src = API_BASE + '/api/podcasts/' + encodeURIComponent(p.id) + '/stream' + sufixo;
   player.play().then(() => { state.tocando = p.id; render(); }).catch(() => msg('', true));
 }
 
 function baixar(p) {
   const sufixo = p.isPublic ? '' : '?token=' + encodeURIComponent(state.token);
   const a = el('a');
-  a.href = '/api/podcasts/' + encodeURIComponent(p.id) + '/download' + sufixo;
+  a.href = API_BASE + '/api/podcasts/' + encodeURIComponent(p.id) + '/download' + sufixo;
   a.download = p.downloadName || p.title || 'episodio.mp3';
   document.body.appendChild(a); a.click(); a.remove();
   msg(t('DOWNLOAD') + ': ' + p.title);
@@ -622,7 +627,7 @@ async function sair() {
 $('btn-voltar').addEventListener('click', () => {
   if (state.view === 'episodio') {
     if (document.referrer && document.referrer.includes('/mobile')) history.back();
-    else location.href = urlComIdioma(PAGINA_MOBILE);
+    else location.href = urlComIdioma('/mobile/');
   } else {
     irPara('feed');
   }
@@ -672,5 +677,8 @@ player.addEventListener('ended', () => { state.tocando = null; });
 window.addEventListener('unhandledrejection', () => msg('', true));
 window.addEventListener('error', () => msg('', true));
 
-aplicarTraducao();
-carregar();
+(async function iniciar() {
+  await descobrirApi();
+  aplicarTraducao();
+  carregar();
+})();

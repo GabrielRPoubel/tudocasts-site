@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <title>TUDOCASTS · MOBILE</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="apple-touch-icon" href="favicon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <script>
+    var p = location.pathname;
+    var raiz = p.indexOf('/tudocasts-site') === 0 ? '/tudocasts-site/' : '/';
+    document.write('<base href="' + raiz + '">');
+  </script>
+  <script>
+    // Mesma regra do servidor: desktop que abrir /mobile volta para o site completo.
+    (function () {
+      var ua = navigator.userAgent || '';
+      var movel = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(ua) ||
+        (navigator.maxTouchPoints > 1 && /Macintosh/i.test(ua));
+      if (movel || new URLSearchParams(location.search).has('mobile')) return;
+      var q = new URLSearchParams();
+      var lang = new URLSearchParams(location.search).get('lang');
+      if (lang) q.set('lang', lang);
+      location.replace(raiz + (q.toString() ? '?' + q : ''));
+    })();
+  </script>
+  <link rel="stylesheet" href="mobile.css?v=20261122f">
+</head>
+<body>
+
+<header class="topo">
+  <div class="topo-principal">
+    <button id="btn-voltar" class="btn-icone" type="button" aria-label="Voltar" hidden>←</button>
+    <h1 id="titulo-app">TUDOCASTS</h1>
+    <button id="btn-idioma" class="btn-icone" type="button" aria-label="Idioma" aria-expanded="false">
+      <svg width="20" height="20" viewBox="0 0 7 7" shape-rendering="crispEdges" aria-hidden="true">
+        <rect x="2" y="0" width="3" height="1" fill="#e6e6e6"></rect>
+        <rect x="1" y="1" width="5" height="1" fill="#e6e6e6"></rect>
+        <rect x="0" y="2" width="7" height="3" fill="#e6e6e6"></rect>
+        <rect x="1" y="5" width="5" height="1" fill="#e6e6e6"></rect>
+        <rect x="2" y="6" width="3" height="1" fill="#e6e6e6"></rect>
+        <rect x="3" y="0" width="1" height="7" fill="#000"></rect>
+        <rect x="0" y="3" width="7" height="1" fill="#000"></rect>
+      </svg>
+    </button>
+  </div>
+
+  <nav id="menu-idioma" class="menu-idioma" aria-label="Idioma" hidden>
+    <button type="button" data-lang="pt">PT</button>
+    <button type="button" data-lang="es">ES</button>
+    <button type="button" data-lang="en">EN</button>
+  </nav>
+
+  <div id="busca-box">
+    <label class="sr-only" for="busca" data-i18n="BUSCA">TÍTULO, DESCRIÇÃO OU AUTOR...</label>
+    <input id="busca" type="search" autocomplete="off" enterkeyhint="search">
+  </div>
+
+  <p id="status" class="status" role="status" aria-live="polite"></p>
+</header>
+
+<main id="app" tabindex="-1"></main>
+
+<nav id="nav-inferior" class="nav-inferior" aria-label="Navegação principal">
+  <button type="button" data-aba="feed" aria-label="Feed" title="Feed"><span aria-hidden="true">☰</span></button>
+  <button type="button" data-aba="favoritos" aria-label="Favoritos" title="Favoritos"><span aria-hidden="true">★</span></button>
+  <button type="button" data-aba="depois" aria-label="Ver depois" title="Ver depois"><span aria-hidden="true">◷</span></button>
+  <button type="button" data-aba="upload" aria-label="Upload" title="Upload"><span aria-hidden="true">↑</span></button>
+  <button type="button" data-aba="conta" aria-label="Conta" title="Conta"><span aria-hidden="true">◎</span></button>
+</nav>
+
+<input id="troca-imagem" type="file" accept="image/*" hidden>
+<audio id="player" preload="metadata"></audio>
+
+<script src="i18n.js?v=20261122f"></script>
+<script src="mobile.js?v=20261122f"></script>
+</body>
+</html>

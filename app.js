@@ -7,7 +7,8 @@ const player = $('player');
 
 const NO_PAGES = ['gabrielrpoubel.github.io', 'tudocasts.com.br', 'www.tudocasts.com.br', 'tudocasts.com', 'www.tudocasts.com']
   .includes(location.hostname.toLowerCase());
-const API_BASE = NO_PAGES ? 'http://localhost:3000' : '';
+const API_BASES = NO_PAGES ? ['http://localhost:3000', 'http://127.0.0.1:3000'] : [''];
+const API_BASE = API_BASES[0];
 const BASE_PATH = location.pathname.startsWith('/tudocasts-site') ? '/tudocasts-site' : '';
 
 const state = {
@@ -35,17 +36,27 @@ async function api(caminho, opcoes = {}) {
   const headers = Object.assign({}, opcoes.headers || {});
   if (state.token) headers.Authorization = 'Bearer ' + state.token;
   if (opcoes.body && !(opcoes.body instanceof FormData)) headers['Content-Type'] = 'application/json';
-  const init = { ...opcoes, headers };
-  if (NO_PAGES) init.targetAddressSpace = 'loopback';
-  const resposta = await fetch(API_BASE + caminho, init);
-  let dados = {};
-  try { dados = await resposta.json(); } catch (_) { /* resposta sem JSON */ }
-  if (!resposta.ok) {
-    const erro = new Error(dados.error || 'ERRO HTTP ' + resposta.status);
-    erro.status = resposta.status;
-    throw erro;
+
+  let ultimoErro = null;
+  for (const base of API_BASES) {
+    try {
+      const init = { ...opcoes, headers };
+      if (NO_PAGES) init.targetAddressSpace = 'loopback';
+      const resposta = await fetch(base + caminho, init);
+      let dados = {};
+      try { dados = await resposta.json(); } catch (_) { /* resposta sem JSON */ }
+      if (!resposta.ok) {
+        const erro = new Error(dados.error || 'ERRO HTTP ' + resposta.status);
+        erro.status = resposta.status;
+        throw erro;
+      }
+      return dados;
+    } catch (e) {
+      if (e.status) throw e;
+      ultimoErro = e;
+    }
   }
-  return dados;
+  throw ultimoErro || new Error('FALHA DE REDE');
 }
 
 function aplicarTraducao() {
@@ -115,8 +126,40 @@ async function carregar(inicial) {
     renderFeed();
     if (inicial && NO_PAGES) msg(t('MODO_PAGES'));
   } catch (e) {
-    msg(t('FALHA_CARREGAR', e.message), true);
+    msg('', true);
+    mostrarIndisponivel();
   }
+}
+
+function mostrarIndisponivel() {
+  const usuarios = $('usuarios');
+  if (usuarios) usuarios.textContent = t('SERVIDOR_OFF_DICA');
+  const box = $('feed');
+  if (!box) return;
+  box.textContent = '';
+
+  const aviso = document.createElement('div');
+  aviso.className = 'aviso-servidor';
+  aviso.appendChild(Object.assign(document.createElement('h3'), { textContent: t('SERVIDOR_OFF_TITULO') }));
+  aviso.appendChild(Object.assign(document.createElement('p'), { textContent: t('SERVIDOR_OFF_DICA') }));
+
+  const links = document.createElement('div');
+  links.className = 'aviso-links';
+  [[t('ABRIR_LOCAL'), 'http://localhost:3000/'], [t('ABRIR_REDE'), 'http://192.168.1.3:3000/']]
+    .forEach(([texto, href]) => {
+      const a = document.createElement('a');
+      a.textContent = texto;
+      a.href = href;
+      links.appendChild(a);
+    });
+  aviso.appendChild(links);
+
+  const tentar = document.createElement('button');
+  tentar.type = 'button';
+  tentar.textContent = t('TENTAR');
+  tentar.addEventListener('click', () => carregar());
+  aviso.appendChild(tentar);
+  box.appendChild(aviso);
 }
 
 function renderAuth() {

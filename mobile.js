@@ -125,12 +125,27 @@ function slug(texto) {
 function urlEp(p) {
   const parametros = new URLSearchParams();
   parametros.set('lang', idiomaAtual);
-  if (new URLSearchParams(location.search).has('mobile')) parametros.set('mobile', '1');
+  if (noSite()) parametros.set('mobile', '1');
   return '/mobile/' + encodeURIComponent(p.ownerLogin) + '/' + encodeURIComponent(slug(p.title)) + '?' + parametros.toString();
 }
 
+function noSite() {
+  return SITE_DOMAINS.includes(location.hostname.toLowerCase());
+}
+
+function urlInicio() {
+  const p = new URLSearchParams();
+  p.set('lang', idiomaAtual);
+  if (noSite()) p.set('mobile', '1');
+  return '/mobile.html?' + p.toString();
+}
+
 function urlUsuario(login) {
-  return urlComIdioma('/mobile.html?user=' + encodeURIComponent(login));
+  const p = new URLSearchParams();
+  p.set('lang', idiomaAtual);
+  p.set('user', login);
+  if (noSite()) p.set('mobile', '1');
+  return '/mobile.html?' + p.toString();
 }
 
 function caminhos() {
@@ -448,7 +463,7 @@ async function renderEpisodio(app) {
         if (!confirm(t('APAGAR_EP_CONFIRMA'))) return;
         try {
           await api('/api/podcasts/' + encodeURIComponent(p.id), { method: 'DELETE' });
-          location.href = urlComIdioma('/mobile.html');
+          location.href = urlInicio();
         } catch (e) { msg(tErro(e.message), !e.status); }
       }));
     }
@@ -505,7 +520,7 @@ async function renderEpisodio(app) {
   }
   await carregarComentarios();
 
-  app.appendChild(linkTexto(t('VOLTAR_FEED'), urlComIdioma('/mobile.html'), 'voltar-feed'));
+  app.appendChild(linkTexto(t('VOLTAR_FEED'), urlInicio(), 'voltar-feed'));
 }
 
 function tocar(p) {
@@ -659,15 +674,15 @@ async function sair() {
 }
 
 $('btn-voltar').addEventListener('click', () => {
-  if (state.view === 'episodio') location.href = urlComIdioma('/mobile.html');
+  if (state.view === 'episodio') location.href = urlInicio();
   else irPara('feed');
 });
 
-$('titulo-app').addEventListener('click', () => { location.href = urlComIdioma('/mobile.html'); });
+$('titulo-app').addEventListener('click', () => { location.href = urlInicio(); });
 $('titulo-app').addEventListener('keydown', (e) => {
   if (e.key === 'Enter' || e.key === ' ') {
     e.preventDefault();
-    location.href = urlComIdioma('/mobile.html');
+    location.href = urlInicio();
   }
 });
 
@@ -707,7 +722,7 @@ document.querySelectorAll('.menu-idioma button').forEach((b) => {
   b.addEventListener('click', () => {
     const params = new URLSearchParams();
     params.set('lang', b.dataset.lang);
-    if (new URLSearchParams(location.search).has('mobile')) params.set('mobile', '1');
+    if (noSite()) params.set('mobile', '1');
     if (state.view === 'episodio' && state.episodio) {
       params.set('ep', state.episodio.ownerLogin + '/' + slug(state.episodio.title));
     } else {

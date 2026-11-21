@@ -15,13 +15,18 @@ const DOMINIOS_PUBLICADOS = [
 ];
 const NO_PAGES = DOMINIOS_PUBLICADOS.includes(location.hostname.toLowerCase());
 const API_BASE = NO_PAGES ? 'http://localhost:3000' : '';
+const BASE_PATH = location.pathname.startsWith('/tudocasts-site') ? '/tudocasts-site' : '';
 
 const state = {
   token: localStorage.getItem('podcast_exe_token') || '',
   me: null,
   users: [],
   podcasts: [],
+  favoritos: [],
+  depois: [],
   filter: null,
+  busca: '',
+  ordemAsc: false,
   tocando: null,
 };
 
@@ -58,6 +63,17 @@ function tempo(segundos) {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
+function slug(texto) {
+  return String(texto || '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+    .slice(0, 80) || 'episodio';
+}
+
+function urlEpisodio(p) {
+  return BASE_PATH + '/' + encodeURIComponent(p.ownerLogin) + '/' + encodeURIComponent(slug(p.title));
+}
+
 function no(tag, classe, texto) {
   const el = document.createElement(tag);
   if (classe) el.className = classe;
@@ -81,6 +97,8 @@ async function carregar(inicial) {
       api('/api/podcasts' + consulta),
     ]);
     state.me = eu.user;
+    state.favoritos = eu.favoritos || [];
+    state.depois = eu.depois || [];
     state.users = usuarios;
     state.podcasts = episodios;
     renderAuth();
@@ -93,11 +111,19 @@ async function carregar(inicial) {
 }
 
 function renderAuth() {
-  $('btn-sair').hidden = !state.me;
-  $('upload-panel').hidden = !state.me;
-  $('quem').textContent = state.me ? ':: LOGADO COMO ' + state.me.login.toUpperCase() : '';
-  $('login').disabled = !!state.me;
-  $('senha').disabled = !!state.me;
+  const logado = !!state.me;
+  $('campos-login').hidden = logado;
+  $('botoes-login').hidden = logado;
+  $('btn-sair').hidden = !logado;
+  $('btn-trocar').hidden = !logado;
+  $('upload-panel').hidden = !logado;
+  if (!logado) $('trocar-panel').hidden = true;
+
+  $('quem').textContent = '';
+  if (logado) {
+    $('quem').appendChild(document.createTextNode(':: LOGADO COMO ' + state.me.login.toUpperCase() + ' '));
+    if (state.me.mod) $('quem').appendChild(no('span', 'mod-tag', 'MOD'));
+  }
 }
 
 function renderUsuarios() {
@@ -124,22 +150,49 @@ function renderUsuarios() {
       carregar();
     });
     box.appendChild(linha);
+
+    if (state.me && state.me.mod && u.login !== state.me.login) {
+      const apagar = link('[apagar conta]', () => apagarConta(u));
+      apagar.style.fontSize = '10px';
+      box.appendChild(apagar);
+    }
   }
+}
+
+function listaVisivel() {
+  let lista = state.podcasts.slice();
+  const q = state.busca.trim().toLowerCase();
+  if (q) {
+    lista = lista.filter((p) =>
+      (p.title + ' ' + (p.description || '') + ' ' + p.ownerLogin).toLowerCase().includes(q));
+  }
+  lista.sort((a, b) => state.ordemAsc ? a.createdAt - b.createdAt : b.createdAt - a.createdAt);
+  return lista;
 }
 
 function renderFeed() {
   $('feed-titulo').innerHTML = '';
-  const titulo = no('b', null, state.filter ? ':: FEED DE ' + state.filter.toUpperCase() + ' ::' : ':: FEED GERAL ::');
-  $('feed-titulo').appendChild(titulo);
+  $('feed-titulo').appendChild(no('b', null,
+    state.filter ? ':: FEED DE ' + state.filter.toUpperCase() + ' ::' : ':: FEED GERAL ::'));
+
+  const ordem = $('ordem');
+  ordem.textContent = '';
+  ordem.appendChild(link(state.ordemAsc ? '[MAIS NOVOS PRIMEIRO]' : '[MAIS ANTIGOS PRIMEIRO]', () => {
+    state.ordemAsc = !state.ordemAsc;
+    renderFeed();
+  }));
+
   if (state.filter) {
     $('feed-titulo').appendChild(document.createTextNode(' '));
     $('feed-titulo').appendChild(link('[VOLTAR AO GERAL]', () => { state.filter = null; carregar(); }));
   }
 
+  const lista = listaVisivel();
+  $('busca-info').textContent = state.busca ? lista.length + ' RESULTADO(S)' : '';
   const box = $('feed');
   box.textContent = '';
 
-  if (state.podcasts.length === 0) {
+  if (lista.length === 0) {
     box.appendChild(no('div', 'vazio', 'NENHUM EPISÓDIO AQUI. O SILÊNCIO REINA.'));
     return;
   }
@@ -152,14 +205,38 @@ function renderFeed() {
   tabela.appendChild(cab);
 
   const corpo = no('tbody');
-  for (const p of state.podcasts) {
+  for (const p of lista) {
     const tr = no('tr');
 
     const tdTitulo = no('td', 'titulo');
-    tdTitulo.appendChild(document.createTextNode(p.title + ' '));
+    const tituloLink = no('a', null, p.title);
+    tituloLink.href = urlEpisodio(p);
+    tituloLink.target = '_blank';
+    tituloLink.rel = 'noopener';
+    tdTitulo.appendChild(tituloLink);
+    tdTitulo.appendChild(document.createTextNode(' '));
     tdTitulo.appendChild(no('span', 'dono', '[@' + p.ownerLogin + ']'));
     if (!p.isPublic) tdTitulo.appendChild(no('span', 'privado', ' [PRIVADO]'));
-    if (p.mine) {
+
+    if (state.me) {
+      const fav = no('a', 'marcador ' + (state.favoritos.includes(p.id) ? 'on' : 'off'),
+        state.favoritos.includes(p.id) ? '★' : '☆');
+      fav.href = '#';
+      fav.title = 'Favorito';
+      fav.addEventListener('click', (e) => { e.preventDefault(); marcar(p, 'favorito'); });
+      tdTitulo.appendChild(document.createTextNode(' '));
+      tdTitulo.appendChild(fav);
+
+      const dep = no('a', 'marcador ' + (state.depois.includes(p.id) ? 'on' : 'off'),
+        state.depois.includes(p.id) ? '◷' : '◴');
+      dep.href = '#';
+      dep.title = 'Assistir mais tarde';
+      dep.addEventListener('click', (e) => { e.preventDefault(); marcar(p, 'depois'); });
+      tdTitulo.appendChild(document.createTextNode(' '));
+      tdTitulo.appendChild(dep);
+    }
+
+    if (p.mine || (state.me && state.me.mod)) {
       const ctrls = no('span', 'controles');
       ctrls.appendChild(document.createTextNode(' '));
       ctrls.appendChild(link('[renomear]', () => renomear(p)));
@@ -201,11 +278,10 @@ function tocar(p) {
   player.src = API_BASE + '/api/podcasts/' + encodeURIComponent(p.id) + '/stream' + sufixo;
   player.play()
     .then(() => { state.tocando = p.id; renderFeed(); })
-    .catch((e) => msg('NÃO DEU PARA TOCAR: ' + e.message, true));
+    .catch(() => msg('', true));
 }
 
 function baixar(p) {
-  // Link direto: o navegador baixa em fluxo, sem carregar 100MB+ na memória.
   const sufixo = p.isPublic ? '' : '?token=' + encodeURIComponent(state.token);
   const a = document.createElement('a');
   a.href = API_BASE + '/api/podcasts/' + encodeURIComponent(p.id) + '/download' + sufixo;
@@ -216,28 +292,37 @@ function baixar(p) {
   msg('DOWNLOAD INICIADO: ' + p.title);
 }
 
+async function marcar(p, tipo) {
+  try {
+    const r = await api('/api/podcasts/' + encodeURIComponent(p.id) + '/marcador', {
+      method: 'POST', body: JSON.stringify({ tipo }),
+    });
+    state.favoritos = r.favoritos || [];
+    state.depois = r.depois || [];
+    renderFeed();
+  } catch (e) { msg(e.message, e.status ? false : true); }
+}
+
 async function renomear(p) {
   const novo = prompt('NOVO TÍTULO:', p.title);
   if (novo === null || !novo.trim()) return;
   try {
     await api('/api/podcasts/' + encodeURIComponent(p.id), {
-      method: 'PATCH',
-      body: JSON.stringify({ title: novo.trim() }),
+      method: 'PATCH', body: JSON.stringify({ title: novo.trim() }),
     });
     msg('TÍTULO ALTERADO.');
     carregar();
-  } catch (e) { msg(e.message, true); }
+  } catch (e) { msg(e.message, e.status ? false : true); }
 }
 
 async function alternar(p) {
   try {
     await api('/api/podcasts/' + encodeURIComponent(p.id), {
-      method: 'PATCH',
-      body: JSON.stringify({ isPublic: !p.isPublic }),
+      method: 'PATCH', body: JSON.stringify({ isPublic: !p.isPublic }),
     });
     msg(p.isPublic ? 'AGORA É PRIVADO.' : 'AGORA É PÚBLICO.');
     carregar();
-  } catch (e) { msg(e.message, true); }
+  } catch (e) { msg(e.message, e.status ? false : true); }
 }
 
 async function apagar(p) {
@@ -247,7 +332,16 @@ async function apagar(p) {
     if (state.tocando === p.id) { player.pause(); player.removeAttribute('src'); state.tocando = null; }
     msg('EPISÓDIO APAGADO.');
     carregar();
-  } catch (e) { msg(e.message, true); }
+  } catch (e) { msg(e.message, e.status ? false : true); }
+}
+
+async function apagarConta(u) {
+  if (!confirm('REMOVER A CONTA "' + u.login + '" E TUDO DELA?')) return;
+  try {
+    await api('/api/users/' + encodeURIComponent(u.id), { method: 'DELETE' });
+    msg('CONTA REMOVIDA.');
+    carregar();
+  } catch (e) { msg(e.message, e.status ? false : true); }
 }
 
 function duracaoDoArquivo(file) {
@@ -278,6 +372,22 @@ async function autenticar(rota) {
   } catch (e) {
     if (e.status === 401) msg('Login e/ou senha incorretos. Tente novamente.');
     else if (e.status >= 400 && e.status < 500) msg(e.message);
+    else msg('', true);
+  }
+}
+
+async function trocarSenha() {
+  const atual = $('senha-atual').value;
+  const nova = $('senha-nova').value;
+  if (!atual || !nova) return msg('PREENCHA A SENHA ATUAL E A NOVA.');
+  try {
+    await api('/api/senha', { method: 'POST', body: JSON.stringify({ senhaAtual: atual, novaSenha: nova }) });
+    $('trocar-panel').hidden = true;
+    $('senha-atual').value = '';
+    $('senha-nova').value = '';
+    msg('SENHA TROCADA.');
+  } catch (e) {
+    if (e.status >= 400 && e.status < 500) msg(e.message);
     else msg('', true);
   }
 }
@@ -321,13 +431,18 @@ function enviarComProgresso(formData) {
 
 async function fazerUpload() {
   const arquivo = $('arquivo').files[0];
+  const imagem = $('imagem').files[0];
   if (!arquivo) return msg('ESCOLHA UM ARQUIVO PRIMEIRO.');
+  if (imagem && imagem.size > 1024 * 1024) return msg('A IMAGEM PRECISA TER NO MÁXIMO 1MB.');
   msg('LENDO O ÁUDIO E CALCULANDO A DURAÇÃO...');
   const duracao = await duracaoDoArquivo(arquivo);
+  if (duracao < 300) return msg('EPISÓDIOS PRECISAM TER PELO MENOS 5 MINUTOS.');
 
   const dados = new FormData();
   dados.append('arquivo', arquivo);
+  if (imagem) dados.append('imagem', imagem);
   dados.append('title', $('titulo').value);
+  dados.append('description', $('descricao').value);
   dados.append('isPublic', $('publico').checked ? '1' : '0');
   dados.append('duration', String(duracao));
 
@@ -335,16 +450,22 @@ async function fazerUpload() {
   try {
     await enviarComProgresso(dados);
     $('arquivo').value = '';
+    $('imagem').value = '';
     $('titulo').value = '';
+    $('descricao').value = '';
     msg('EPISÓDIO PUBLICADO NO FEED!');
     await carregar();
-  } catch (e) { msg(e.message, true); }
+  } catch (e) { msg(e.message, e.status ? false : true); }
 }
 
 $('btn-entrar').addEventListener('click', () => autenticar('/api/login'));
 $('btn-criar').addEventListener('click', () => autenticar('/api/register'));
 $('btn-sair').addEventListener('click', sair);
 $('btn-upload').addEventListener('click', fazerUpload);
+$('btn-trocar').addEventListener('click', () => { $('trocar-panel').hidden = !$('trocar-panel').hidden; });
+$('btn-cancela-senha').addEventListener('click', () => { $('trocar-panel').hidden = true; });
+$('btn-confirmar-senha').addEventListener('click', trocarSenha);
+$('busca').addEventListener('input', () => { state.busca = $('busca').value; renderFeed(); });
 
 $('senha').addEventListener('keydown', (e) => { if (e.key === 'Enter') autenticar('/api/login'); });
 $('login').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('senha').focus(); });

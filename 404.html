@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TUDOCASTS :: EPISÓDIO</title>
+  <script>
+    var caminho = location.pathname;
+    var raiz = caminho.indexOf('/tudocasts-site') === 0 ? '/tudocasts-site/' : '/';
+    document.write('<base href="' + raiz + '">');
+  </script>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<center><h1 class="logo" style="font-size:28px">TUDOCASTS</h1></center>
+<div id="status-ep" class="status">CARREGANDO EPISÓDIO...</div>
+
+<div class="episodio" id="pagina" hidden>
+  <img id="capa" class="capa" alt="capa do episódio" hidden>
+  <div id="sem-capa" class="sem-capa" hidden>SEM IMAGEM</div>
+  <h2 id="titulo"></h2>
+  <div class="autor" id="autor"></div>
+  <div class="descricao" id="descricao"></div>
+
+  <div class="controles-ep">
+    <button id="play" class="btn-play">></button>
+    <span id="atual">0:00</span>
+    <input id="progresso" type="range" min="0" max="1000" value="0">
+    <span id="total">0:00</span>
+  </div>
+
+  <div class="velocidades" id="velocidades">
+    <button data-v="0.75">0.75x</button>
+    <button data-v="1">1x</button>
+    <button data-v="1.25">1.25x</button>
+    <button data-v="1.5">1.5x</button>
+    <button data-v="2">2x</button>
+    <button data-v="4">4x</button>
+  </div>
+
+  <div class="navegacao">
+    <span id="anterior"></span>
+    <span id="proximo"></span>
+  </div>
+
+  <div id="acoes"></div>
+
+  <div class="comentarios">
+    <b>:: COMENTÁRIOS ::</b>
+    <div id="comentarios"></div>
+    <div id="form-comentario" hidden>
+      <input id="texto-comentario" type="text" maxlength="500" placeholder="SEU COMENTÁRIO">
+      <button id="btn-comentar" type="button">COMENTAR</button>
+    </div>
+  </div>
+
+  <p style="text-align:center"><a id="voltar" href="#">[VOLTAR AO FEED]</a></p>
+</div>
+
+<audio id="player" preload="metadata"></audio>
+<script src="episode.js"></script>
+</body>
+</html>

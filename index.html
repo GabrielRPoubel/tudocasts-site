@@ -15,21 +15,41 @@
 </center>
 
 <div class="auth">
-  <b>[LOGIN]</b> <input id="login" type="text" maxlength="24" autocomplete="username" placeholder="seu_login">
-  <b>[SENHA]</b> <input id="senha" type="password" maxlength="128" autocomplete="current-password" placeholder="••••••">
-  <button id="btn-entrar" type="button">ENTRAR</button>
-  <button id="btn-criar" type="button">CRIAR CONTA</button>
+  <span id="campos-login">
+    <b>[LOGIN]</b> <input id="login" type="text" maxlength="24" autocomplete="username" placeholder="seu_login">
+    <b>[SENHA]</b> <input id="senha" type="password" maxlength="128" autocomplete="current-password" placeholder="••••••">
+  </span>
+  <span id="botoes-login">
+    <button id="btn-entrar" type="button">ENTRAR</button>
+    <button id="btn-criar" type="button">CRIAR CONTA</button>
+  </span>
+  <button id="btn-trocar" type="button" hidden>TROCAR SENHA</button>
   <button id="btn-sair" type="button" hidden>SAIR</button>
   <span id="quem"></span>
 </div>
 
+<div id="trocar-panel" class="auth" hidden>
+  <b>[TROCAR SENHA]</b>
+  SENHA ATUAL: <input id="senha-atual" type="password" maxlength="128" placeholder="senha atual">
+  NOVA SENHA: <input id="senha-nova" type="password" maxlength="128" placeholder="nova senha">
+  <button id="btn-confirmar-senha" type="button">CONFIRMAR</button>
+  <button id="btn-cancela-senha" type="button">CANCELAR</button>
+</div>
+
 <div id="status" class="status">SISTEMA ONLINE. FAÇA LOGIN OU CRIE UMA CONTA PARA PUBLICAR.</div>
+
+<div class="busca">
+  <b>[BUSCA]</b> <input id="busca" type="text" placeholder="TÍTULO, DESCRIÇÃO OU AUTOR...">
+  <span id="busca-info"></span>
+</div>
 
 <div id="upload-panel" class="upload" hidden>
   <fieldset>
     <legend>:: NOVO EPISÓDIO ::</legend>
     <label>ARQUIVO: <input id="arquivo" type="file" accept="audio/*" required></label>
     <label>TÍTULO: <input id="titulo" type="text" maxlength="120" placeholder="(deixe em branco = nome do arquivo)"></label>
+    <label>DESCRIÇÃO (ATÉ 300): <input id="descricao" type="text" maxlength="300" placeholder="sobre o episódio"></label>
+    <label>IMAGEM (ATÉ 1MB): <input id="imagem" type="file" accept="image/*"></label>
     <label><input id="publico" type="checkbox" checked> PÚBLICO</label>
     <button id="btn-upload" type="button">&gt;&gt; FAZER UPLOAD &lt;&lt;</button>
   </fieldset>
@@ -46,6 +66,7 @@
     <td id="main" valign="top">
       <div class="caixa">
         <div id="feed-titulo"><b>:: FEED GERAL ::</b></div>
+        <div id="ordem"></div>
         <div id="feed"></div>
       </div>
     </td>

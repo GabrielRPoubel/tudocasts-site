@@ -1,0 +1,108 @@
+/* TUDOCASTS — estética de internet primitiva: preto, branco e cinza. */
+
+html, body {
+  background: #000;
+  color: #e6e6e6;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 14px;
+  margin: 0;
+  padding: 8px;
+}
+
+a { color: #ffffff; text-decoration: underline; }
+a:visited { color: #a6a6a6; }
+
+input, button {
+  background: #000;
+  color: #e6e6e6;
+  border: 1px solid #808080;
+  font-family: inherit;
+  font-size: 13px;
+  padding: 3px 5px;
+}
+input::placeholder { color: #666666; }
+button { cursor: pointer; padding: 3px 9px; }
+button:hover { background: #e6e6e6; color: #000; }
+
+.logo {
+  color: #ffffff;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 46px;
+  font-weight: bold;
+  letter-spacing: 4px;
+  line-height: 1.1;
+  margin: 10px auto 14px;
+  text-align: center;
+}
+.linha { color: #808080; }
+
+.auth, .status, .upload {
+  max-width: 980px;
+  margin: 6px auto;
+  padding: 6px 8px;
+}
+.auth { border: 1px solid #808080; }
+.status { border: 1px dashed #666666; min-height: 17px; }
+.upload { border: 1px dashed #a6a6a6; color: #d9d9d9; }
+.upload fieldset { border: 1px solid #a6a6a6; }
+.upload legend { color: #ffffff; font-weight: bold; }
+.upload input { border-color: #a6a6a6; color: #ffffff; }
+.upload input::placeholder { color: #737373; }
+.upload button { border-color: #a6a6a6; color: #ffffff; }
+.upload button:hover { background: #d9d9d9; color: #000; }
+.upload label { display: inline-block; margin: 3px 6px 3px 0; }
+
+#quem { margin-left: 10px; color: #ffffff; font-weight: bold; }
+
+#layout { max-width: 980px; margin: 0 auto; }
+.caixa { border: 1px solid #808080; padding: 6px 8px; min-height: 120px; }
+.usuarios { margin-top: 6px; }
+.usuario { display: block; padding: 2px 4px; cursor: pointer; color: #ffffff; }
+.usuario:hover { background: #262626; }
+.usuario.ativo { background: #e6e6e6; color: #000; }
+.usuario .qtd { color: #a6a6a6; }
+.usuario.ativo .qtd { color: #000; }
+
+table.feed {
+  border-collapse: collapse;
+  width: 100%;
+  margin-top: 6px;
+}
+table.feed th, table.feed td {
+  border: 1px solid #808080;
+  padding: 4px 7px;
+  text-align: left;
+  vertical-align: middle;
+}
+table.feed th { color: #ffffff; }
+table.feed tr:hover td { background: #1a1a1a; }
+.titulo { font-weight: bold; }
+.dono { font-size: 11px; color: #b3b3b3; font-weight: normal; }
+.privado { font-size: 11px; color: #a6a6a6; }
+.controles { font-size: 11px; margin-left: 6px; }
+.controles a { color: #d9d9d9; }
+.btn-play {
+  border: 1px solid #808080;
+  background: #000;
+  color: #e6e6e6;
+  cursor: pointer;
+  font-family: inherit;
+  min-width: 26px;
+}
+.btn-play.tocando { background: #e6e6e6; color: #000; }
+.vazio { color: #b3b3b3; padding: 8px 2px; }
+
+footer {
+  max-width: 980px;
+  margin: 8px auto;
+  font-size: 12px;
+  color: #808080;
+}
+footer p { margin: 2px 0; }
+.pisca { color: #ffffff; animation: pisca 1s steps(2, start) infinite; }
+@keyframes pisca { to { visibility: hidden; } }
+
+@media (max-width: 700px) {
+  #layout, #layout tbody, #layout tr, #layout td { display: block; width: 100% !important; }
+  .logo { font-size: 28px; letter-spacing: 3px; margin: 6px auto 10px; }
+}

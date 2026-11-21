@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TUDOCASTS</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+<center>
+<h1 class="logo">TUDOCASTS</h1>
+<p class="linha">================================================================================</p>
+</center>
+
+<div class="auth">
+  <b>[LOGIN]</b> <input id="login" type="text" maxlength="24" autocomplete="username" placeholder="seu_login">
+  <b>[SENHA]</b> <input id="senha" type="password" maxlength="128" autocomplete="current-password" placeholder="••••••">
+  <button id="btn-entrar" type="button">ENTRAR</button>
+  <button id="btn-criar" type="button">CRIAR CONTA</button>
+  <button id="btn-sair" type="button" hidden>SAIR</button>
+  <span id="quem"></span>
+</div>
+
+<div id="status" class="status">SISTEMA ONLINE. FAÇA LOGIN OU CRIE UMA CONTA PARA PUBLICAR.</div>
+
+<div id="upload-panel" class="upload" hidden>
+  <fieldset>
+    <legend>:: NOVO EPISÓDIO ::</legend>
+    <label>ARQUIVO: <input id="arquivo" type="file" accept="audio/*" required></label>
+    <label>TÍTULO: <input id="titulo" type="text" maxlength="120" placeholder="(deixe em branco = nome do arquivo)"></label>
+    <label><input id="publico" type="checkbox" checked> PÚBLICO</label>
+    <button id="btn-upload" type="button">&gt;&gt; FAZER UPLOAD &lt;&lt;</button>
+  </fieldset>
+</div>
+
+<table id="layout" width="100%" cellpadding="8" cellspacing="0">
+  <tr>
+    <td id="sidebar" valign="top" width="230">
+      <div class="caixa">
+        <b>:: QUEM POSTOU ::</b>
+        <div id="usuarios" class="usuarios"><br>CARREGANDO...</div>
+      </div>
+    </td>
+    <td id="main" valign="top">
+      <div class="caixa">
+        <div id="feed-titulo"><b>:: FEED GERAL ::</b></div>
+        <div id="feed"></div>
+      </div>
+    </td>
+  </tr>
+</table>
+
+<hr>
+<footer>
+  <p>ESQUECEU A SENHA? <span class="pisca">SE FODEU.</span></p>
+  <p>VOCÊ É O VISITANTE Nº <b id="hits">???</b> &nbsp;|&nbsp; TUDOCASTS &copy; 2026-AGORA &nbsp;|&nbsp; <a href="#" onclick="location.reload(); return false;">ATUALIZAR</a></p>
+</footer>
+
+<audio id="player" preload="none"></audio>
+<script src="/app.js"></script>
+</body>
+</html>

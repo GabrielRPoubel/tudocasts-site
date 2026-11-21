@@ -7,8 +7,24 @@ const player = $('player');
 
 const NO_PAGES = ['gabrielrpoubel.github.io', 'tudocasts.com.br', 'www.tudocasts.com.br', 'tudocasts.com', 'www.tudocasts.com']
   .includes(location.hostname.toLowerCase());
-const API_BASES = NO_PAGES ? ['http://localhost:3000', 'http://127.0.0.1:3000'] : [''];
-const API_BASE = API_BASES[0];
+let API_BASES = NO_PAGES ? ['http://localhost:3000', 'http://127.0.0.1:3000'] : [''];
+let API_BASE = API_BASES[0];
+let TUNNEL_URL = '';
+
+async function descobrirApi() {
+  if (!NO_PAGES) return;
+  try {
+    const resposta = await fetch('/tunnel-url.json', { cache: 'no-store' });
+    if (resposta.ok) {
+      const dados = await resposta.json();
+      if (dados.url && /^https:\/\/[a-z0-9-]+\.trycloudflare\.com$/i.test(dados.url)) TUNNEL_URL = dados.url;
+    }
+  } catch (_) { /* sem URL publicada */ }
+  API_BASES = TUNNEL_URL
+    ? [TUNNEL_URL, 'http://localhost:3000', 'http://127.0.0.1:3000']
+    : ['http://localhost:3000', 'http://127.0.0.1:3000'];
+  API_BASE = API_BASES[0];
+}
 const BASE_PATH = location.pathname.startsWith('/tudocasts-site') ? '/tudocasts-site' : '';
 
 const state = {
@@ -575,6 +591,11 @@ player.addEventListener('ended', () => { state.tocando = null; renderFeed(); });
 window.addEventListener('unhandledrejection', () => msg('', true));
 window.addEventListener('error', () => msg('', true));
 
-aplicarTraducao();
-api('/api/hits').then((d) => { $('hits').textContent = d.hits; }).catch(() => { $('hits').textContent = '???'; msg('', true); });
-carregar(true);
+(async function iniciar() {
+  await descobrirApi();
+  aplicarTraducao();
+  api('/api/hits')
+    .then((d) => { $('hits').textContent = d.hits; })
+    .catch(() => { $('hits').textContent = '???'; });
+  carregar(true);
+})();

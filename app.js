@@ -75,7 +75,7 @@ async function carregar(inicial) {
     renderAuth();
     renderUsuarios();
     renderFeed();
-    if (inicial && NO_PAGES) msg('CONECTADO AO SERVIDOR LOCAL :: localhost:3000');
+    if (inicial && NO_PAGES) msg('Não me responsabilizo pelo que é postado por terceiros.');
   } catch (e) {
     msg('FALHA AO CARREGAR: ' + e.message, true);
   }

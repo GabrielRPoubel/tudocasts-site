@@ -36,7 +36,11 @@ async function api(caminho, opcoes = {}) {
   const resposta = await fetch(API_BASE + caminho, init);
   let dados = {};
   try { dados = await resposta.json(); } catch (_) { /* resposta sem JSON */ }
-  if (!resposta.ok) throw new Error(dados.error || 'ERRO HTTP ' + resposta.status);
+  if (!resposta.ok) {
+    const erro = new Error(dados.error || 'ERRO HTTP ' + resposta.status);
+    erro.status = resposta.status;
+    throw erro;
+  }
   return dados;
 }
 
@@ -264,7 +268,11 @@ async function autenticar(rota) {
     $('senha').value = '';
     msg(rota === '/api/register' ? 'CONTA CRIADA. BEM-VINDO AO CLUBE.' : 'LOGIN EFETUADO.');
     await carregar();
-  } catch (e) { msg(e.message, true); }
+  } catch (e) {
+    if (e.status === 401) msg('Login e/ou senha incorretos. Tente novamente.');
+    else if (e.status >= 400 && e.status < 500) msg(e.message);
+    else msg('', true);
+  }
 }
 
 async function sair() {

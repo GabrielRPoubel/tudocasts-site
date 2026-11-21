@@ -476,7 +476,13 @@ async function autenticar(rota) {
     const dados = await api(rota, { method: 'POST', body: JSON.stringify({ login, senha }) });
     state.token = dados.token;
     localStorage.setItem('podcast_exe_token', state.token);
+    if (rota === '/api/register' && dados.user) {
+      state.me = dados.user;
+      state.favoritos = [];
+      state.depois = [];
+    }
     $('senha').value = '';
+    renderAuth();
     msg(rota === '/api/register' ? t('CONTA_CRIADA') : t('LOGIN_OK'));
     await carregar();
   } catch (e) {

@@ -648,6 +648,11 @@ async function autenticar(rota, usuarioInput, senhaInput) {
     const dados = await api(rota, { method: 'POST', body: JSON.stringify({ login, senha }) });
     state.token = dados.token;
     localStorage.setItem('podcast_exe_token', state.token);
+    if (rota === '/api/register' && dados.user) {
+      state.me = dados.user;
+      state.favoritos = [];
+      state.depois = [];
+    }
     msg(rota === '/api/register' ? t('CONTA_CRIADA') : t('LOGIN_OK'));
     if (state.querUpload) {
       state.querUpload = false;

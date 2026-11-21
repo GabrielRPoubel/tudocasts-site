@@ -198,7 +198,7 @@ function baixar(p) {
   const sufixo = p.isPublic ? '' : '?token=' + encodeURIComponent(state.token);
   const a = document.createElement('a');
   a.href = API_BASE + '/api/podcasts/' + encodeURIComponent(p.id) + '/download' + sufixo;
-  a.download = p.originalName || p.title || 'episodio.mp3';
+  a.download = p.downloadName || p.originalName || p.title || 'episodio.mp3';
   document.body.appendChild(a);
   a.click();
   a.remove();

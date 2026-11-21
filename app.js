@@ -18,9 +18,11 @@ const state = {
   tocando: null,
 };
 
+const MSG_INDISPONIVEL = 'Servidor indisponível. Manutenção em breve. Por favor, volte mais tarde.';
+
 function msg(texto, erro) {
   const el = $('status');
-  el.textContent = texto;
+  el.textContent = erro ? MSG_INDISPONIVEL : texto;
   el.style.color = erro ? '#ffffff' : '#b3b3b3';
 }
 
@@ -254,7 +256,7 @@ function duracaoDoArquivo(file) {
 async function autenticar(rota) {
   const login = $('login').value.trim();
   const senha = $('senha').value;
-  if (!login || !senha) return msg('PREENCHA LOGIN E SENHA.', true);
+  if (!login || !senha) return msg('PREENCHA LOGIN E SENHA.');
   try {
     const dados = await api(rota, { method: 'POST', body: JSON.stringify({ login, senha }) });
     state.token = dados.token;
@@ -304,7 +306,7 @@ function enviarComProgresso(formData) {
 
 async function fazerUpload() {
   const arquivo = $('arquivo').files[0];
-  if (!arquivo) return msg('ESCOLHA UM ARQUIVO PRIMEIRO.', true);
+  if (!arquivo) return msg('ESCOLHA UM ARQUIVO PRIMEIRO.');
   msg('LENDO O ÁUDIO E CALCULANDO A DURAÇÃO...');
   const duracao = await duracaoDoArquivo(arquivo);
 
@@ -340,6 +342,9 @@ if (NO_PAGES) {
 
 api('/api/hits')
   .then((d) => { $('hits').textContent = d.hits; })
-  .catch(() => { $('hits').textContent = '???'; });
+  .catch(() => { $('hits').textContent = '???'; msg('', true); });
+
+window.addEventListener('unhandledrejection', () => msg('', true));
+window.addEventListener('error', () => msg('', true));
 
 carregar(true);

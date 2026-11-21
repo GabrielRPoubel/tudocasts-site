@@ -471,11 +471,19 @@ async function renderEpisodio(app) {
   }
 
   app.appendChild(el('p', 'secao-titulo', t('COMENTARIOS')));
+  const contadorComentarios = el('p', 'dica');
+  let campoCom = null;
+  let botaoComentar = null;
+  app.appendChild(contadorComentarios);
   const lista = el('div');
   app.appendChild(lista);
 
   async function carregarComentarios() {
     const dados = await api('/api/podcasts/' + encodeURIComponent(p.id) + '/comments');
+    const meus = dados.filter((c) => state.me && c.userLogin === state.me.login).length;
+    contadorComentarios.textContent = t('COMENTARIO_LIMITE', meus);
+    if (campoCom) campoCom.disabled = meus >= 2;
+    if (botaoComentar) botaoComentar.disabled = meus >= 2;
     lista.textContent = '';
     if (dados.length === 0) {
       lista.appendChild(el('div', 'vazio', t('SEM_COMENTARIOS')));
@@ -499,7 +507,7 @@ async function renderEpisodio(app) {
   }
 
   if (state.me) {
-    const campoCom = el('input'); campoCom.id = 'texto-comentario'; campoCom.type = 'text';
+    campoCom = el('input'); campoCom.id = 'texto-comentario'; campoCom.type = 'text';
     campoCom.maxLength = 500; campoCom.placeholder = t('SEU_COMENTARIO');
     app.appendChild(campoCom);
     const enviar = botao(t('COMENTAR'), async () => {
@@ -512,6 +520,7 @@ async function renderEpisodio(app) {
         campoCom.value = ''; await carregarComentarios(); msg(t('COMENTARIO_OK'));
       } catch (e) { msg(tErro(e.message), !e.status); }
     }, 'primario largo');
+    botaoComentar = enviar;
     app.appendChild(enviar);
   }
   if (!state.me) {

@@ -515,6 +515,64 @@ function enviarComProgresso(formData) {
   });
 }
 
+let cropEstado = null;
+
+function abrirRecorte() {
+  const arquivo = $('imagem').files[0];
+  if (!arquivo || !arquivo.type.startsWith('image/')) return;
+  const url = URL.createObjectURL(arquivo);
+  const imagem = new Image();
+  imagem.onload = () => {
+    URL.revokeObjectURL(url);
+    cropEstado = { imagem, escala: 1, x: 0, y: 0 };
+    $('crop-zoom').value = '100';
+    $('crop-box').hidden = false;
+    desenharRecorte();
+  };
+  imagem.onerror = () => URL.revokeObjectURL(url);
+  imagem.src = url;
+}
+
+function desenharRecorte() {
+  if (!cropEstado) return;
+  const canvas = $('crop-canvas');
+  const ctx = canvas.getContext('2d');
+  const tamanho = canvas.width;
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, tamanho, tamanho);
+  const { imagem, escala, x, y } = cropEstado;
+  const base = Math.max(tamanho / imagem.naturalWidth, tamanho / imagem.naturalHeight) * escala;
+  const largura = imagem.naturalWidth * base;
+  const altura = imagem.naturalHeight * base;
+  ctx.drawImage(imagem, (tamanho - largura) / 2 + x, (tamanho - altura) / 2 + y, largura, altura);
+  ctx.strokeStyle = '#fff';
+  ctx.strokeRect(0.5, 0.5, tamanho - 1, tamanho - 1);
+}
+
+function aplicarRecorte() {
+  if (!cropEstado) return;
+  const saida = document.createElement('canvas');
+  saida.width = 512; saida.height = 512;
+  const ctx = saida.getContext('2d');
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, 512, 512);
+  const { imagem, escala, x, y } = cropEstado;
+  const proporcao = 512 / $('crop-canvas').width;
+  const base = Math.max(512 / imagem.naturalWidth, 512 / imagem.naturalHeight) * escala;
+  const largura = imagem.naturalWidth * base;
+  const altura = imagem.naturalHeight * base;
+  ctx.drawImage(imagem, (512 - largura) / 2 + x * proporcao, (512 - altura) / 2 + y * proporcao, largura, altura);
+
+  saida.toBlob((blob) => {
+    const recortada = new File([blob], 'capa-recortada.png', { type: 'image/png' });
+    const transferencia = new DataTransfer();
+    transferencia.items.add(recortada);
+    $('imagem').files = transferencia.files;
+    $('crop-box').hidden = true;
+    msg(t('IMG_RECORTADA'));
+  }, 'image/png');
+}
+
 async function fazerUpload() {
   const arquivo = $('arquivo').files[0];
   const imagem = $('imagem').files[0];
@@ -538,6 +596,9 @@ async function fazerUpload() {
     await enviarComProgresso(dados);
     $('arquivo').value = '';
     $('imagem').value = '';
+    $('btn-recortar').hidden = true;
+    $('crop-box').hidden = true;
+    cropEstado = null;
     $('titulo').value = '';
     $('descricao').value = '';
     $('descricao-contador').textContent = t('RESTANTES', 300);
@@ -574,6 +635,36 @@ $('busca').addEventListener('input', () => { state.busca = $('busca').value; ren
 $('descricao').addEventListener('input', () => {
   $('descricao-contador').textContent = t('RESTANTES', 300 - $('descricao').value.length);
 });
+
+$('imagem').addEventListener('change', () => {
+  $('btn-recortar').hidden = !$('imagem').files[0];
+  if ($('imagem').files[0]) abrirRecorte();
+});
+$('btn-recortar').addEventListener('click', abrirRecorte);
+$('crop-aplicar').addEventListener('click', aplicarRecorte);
+$('crop-cancelar').addEventListener('click', () => { $('crop-box').hidden = true; });
+$('crop-zoom').addEventListener('input', () => {
+  if (!cropEstado) return;
+  cropEstado.escala = Number($('crop-zoom').value) / 100;
+  desenharRecorte();
+});
+
+let arrastando = false;
+let ultimoPonto = null;
+$('crop-canvas').addEventListener('pointerdown', (e) => {
+  if (!cropEstado) return;
+  arrastando = true;
+  ultimoPonto = { x: e.clientX, y: e.clientY };
+  $('crop-canvas').setPointerCapture(e.pointerId);
+});
+$('crop-canvas').addEventListener('pointermove', (e) => {
+  if (!arrastando || !cropEstado) return;
+  cropEstado.x += e.clientX - ultimoPonto.x;
+  cropEstado.y += e.clientY - ultimoPonto.y;
+  ultimoPonto = { x: e.clientX, y: e.clientY };
+  desenharRecorte();
+});
+$('crop-canvas').addEventListener('pointerup', () => { arrastando = false; });
 
 $('btn-idioma').addEventListener('click', () => { $('menu-idioma').hidden = !$('menu-idioma').hidden; });
 document.querySelectorAll('#menu-idioma button').forEach((b) => {

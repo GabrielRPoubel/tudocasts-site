@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TUDOCASTS</title>
   <script>
-    // Celular abre direto a versÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o mobile; ?desktop=1 forÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§a a versÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o completa.
+    // Celular abre direto a versão mobile; ?desktop=1 força a versão completa.
     (function () {
       var ua = navigator.userAgent || '';
       var movel = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(ua) ||
@@ -19,7 +19,7 @@
     })();
   </script>
   <link rel="icon" type="image/png" href="favicon.png">
-  <link rel="stylesheet" href="styles.css?v=20261123d">
+  <link rel="stylesheet" href="styles.css?v=20261124a">
 </head>
 <body>
 
@@ -50,15 +50,15 @@
 <div class="auth">
   <span id="campos-login">
     <b data-i18n="LOGIN">[LOGIN]</b> <input id="login" type="text" maxlength="24" autocomplete="username" placeholder="seu_login">
-    <b data-i18n="SENHA">[SENHA]</b> <input id="senha" type="password" maxlength="128" autocomplete="current-password" placeholder="ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢">
+    <b data-i18n="SENHA">[SENHA]</b> <input id="senha" type="password" maxlength="128" autocomplete="current-password" placeholder="••••••">
   </span>
   <span id="botoes-login">
     <button id="btn-entrar" type="button" data-i18n="ENTRAR">ENTRAR</button>
     <button id="btn-criar" type="button" data-i18n="CRIAR_CONTA">CRIAR CONTA</button>
   </span>
   <button id="btn-upload-panel" type="button" hidden data-i18n="UPLOAD">UPLOAD</button>
-  <button id="btn-favoritos" type="button" data-i18n="FAVORITOS">ÃƒÆ’Ã‚Â¢Ãƒâ€¹Ã…â€œÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ FAVORITOS</button>
-  <button id="btn-depois" type="button" data-i18n="VER_DEPOIS">ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬ÂÃƒâ€šÃ‚Â· VER DEPOIS</button>
+  <button id="btn-favoritos" type="button" data-i18n="FAVORITOS">★ FAVORITOS</button>
+  <button id="btn-depois" type="button" data-i18n="VER_DEPOIS">◷ VER DEPOIS</button>
   <button id="btn-trocar" type="button" hidden data-i18n="TROCAR_SENHA">TROCAR SENHA</button>
   <button id="btn-sair" type="button" hidden data-i18n="SAIR">SAIR</button>
   <span id="quem"></span>
@@ -72,21 +72,30 @@
   <button id="btn-cancela-senha" type="button" data-i18n="CANCELAR">CANCELAR</button>
 </div>
 
-<div id="status" class="status" data-i18n="SISTEMA">SISTEMA ONLINE. FAÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¡A LOGIN OU CRIE UMA CONTA PARA PUBLICAR.</div>
+<div id="status" class="status" data-i18n="SISTEMA">SISTEMA ONLINE. FAÇA LOGIN OU CRIE UMA CONTA PARA PUBLICAR.</div>
 
 <div class="busca">
-  <b data-i18n="BUSCA_LABEL">[BUSCA]</b> <input id="busca" type="text" data-i18n-ph="BUSCA" placeholder="TÃƒÆ’Ã†â€™Ãƒâ€šÃ‚ÂTULO, DESCRIÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢O OU AUTOR...">
+  <b data-i18n="BUSCA_LABEL">[BUSCA]</b> <input id="busca" type="text" data-i18n-ph="BUSCA" placeholder="TÍTULO, DESCRIÇÃO OU AUTOR...">
   <span id="busca-info"></span>
 </div>
 
 <div id="upload-panel" class="upload" hidden>
   <fieldset>
-    <legend data-i18n="NOVO_EPISODIO">:: NOVO EPISÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œDIO ::</legend>
+    <legend data-i18n="NOVO_EPISODIO">:: NOVO EPISÓDIO ::</legend>
     <label><span data-i18n="ARQUIVO">ARQUIVO:</span> <input id="arquivo" type="file" accept="audio/*" required></label>
-    <label><span data-i18n="TITULO">TÃƒÆ’Ã†â€™Ãƒâ€šÃ‚ÂTULO:</span> <input id="titulo" type="text" maxlength="120" placeholder="..."></label>
-    <label class="campo-descricao"><span data-i18n="DESCRICAO">DESCRIÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢O</span> (<span id="descricao-contador">300 letras restantes</span>):<br><textarea id="descricao" rows="4" maxlength="300" placeholder="..."></textarea></label>
-    <label><span data-i18n="IMAGEM">IMAGEM (ATÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â° 1MB):</span> <input id="imagem" type="file" accept="image/*"></label>
-    <label><input id="publico" type="checkbox" checked> <span data-i18n="PUBLICO">PÃƒÆ’Ã†â€™Ãƒâ€¦Ã‚Â¡BLICO</span></label>
+    <label><span data-i18n="TITULO">TÍTULO:</span> <input id="titulo" type="text" maxlength="120" placeholder="..."></label>
+    <label class="campo-descricao"><span data-i18n="DESCRICAO">DESCRIÇÃO</span> (<span id="descricao-contador">300 letras restantes</span>):<br><textarea id="descricao" rows="4" maxlength="300" placeholder="..."></textarea></label>
+    <label><span data-i18n="IMAGEM">IMAGEM/GIF (ATÉ 1MB):</span> <input id="imagem" type="file" accept="image/*,image/gif"></label>
+    <button id="btn-recortar" type="button" hidden data-i18n="CROP_BOTAO">RECORTAR IMAGEM</button>
+    <div id="crop-box" class="crop-box" hidden>
+      <p data-i18n="CROP_TITULO">:: RECORTAR CAPA ::</p>
+      <p class="dica" data-i18n="CROP_DICA">ARRASTE A IMAGEM E AJUSTE O ZOOM.</p>
+      <canvas id="crop-canvas" width="320" height="320"></canvas>
+      <label><span data-i18n="CROP_ZOOM">ZOOM</span> <input id="crop-zoom" type="range" min="100" max="300" value="100"></label>
+      <button id="crop-aplicar" type="button" data-i18n="CROP_APLICAR">APLICAR RECORTE</button>
+      <button id="crop-cancelar" type="button" data-i18n="CROP_CANCELAR">CANCELAR RECORTE</button>
+    </div>
+    <label><input id="publico" type="checkbox" checked> <span data-i18n="PUBLICO">PÚBLICO</span></label>
     <button id="btn-upload" type="button" data-i18n="FAZER_UPLOAD">&gt;&gt; FAZER UPLOAD &lt;&lt;</button>
   </fieldset>
 </div>
@@ -112,13 +121,13 @@
 <hr>
 <footer>
   <p><span data-i18n="ESQUECEU">ESQUECEU A SENHA?</span> <span class="pisca" data-i18n="SEFODEU">SE FODEU.</span></p>
-  <p><span data-i18n="VISITANTE">VOCÃƒÆ’Ã†â€™Ãƒâ€¦Ã‚Â  ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â° O VISITANTE NÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âº</span> <b id="hits">???</b> &nbsp;|&nbsp; TUDOCASTS &copy; 2026-AGORA &nbsp;|&nbsp; <a href="#" onclick="location.reload(); return false;" data-i18n="ATUALIZAR">ATUALIZAR</a></p>
-  <p class="aviso-legal" data-i18n="AVISO_LEGAL">ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© 2026 TUDOCASTS. Todos os direitos reservados. Todo o conteÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âºdo publicado ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© de inteira responsabilidade de quem o postou e nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o representa a opiniÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o da plataforma.</p>
+  <p><span data-i18n="VISITANTE">VOCÊ É O VISITANTE Nº</span> <b id="hits">???</b> &nbsp;|&nbsp; TUDOCASTS &copy; 2026-AGORA &nbsp;|&nbsp; <a href="#" onclick="location.reload(); return false;" data-i18n="ATUALIZAR">ATUALIZAR</a></p>
+  <p class="aviso-legal" data-i18n="AVISO_LEGAL">© 2026 TUDOCASTS. Todos os direitos reservados. Todo o conteúdo publicado é de inteira responsabilidade de quem o postou e não representa a opinião da plataforma.</p>
 </footer>
 
 <input id="troca-imagem" type="file" accept="image/*" hidden>
 <audio id="player" preload="none"></audio>
-<script src="i18n.js?v=20261123d"></script>
-<script src="app.js?v=20261123d"></script>
+<script src="i18n.js?v=20261124a"></script>
+<script src="app.js?v=20261124a"></script>
 </body>
 </html>

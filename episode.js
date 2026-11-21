@@ -78,6 +78,14 @@ let episodio = null;
 let eu = null;
 
 function renderComentarios(lista) {
+  const meus = lista.filter((c) => eu && c.userLogin === eu.login).length;
+  const contador = $('comentarios-contador');
+  if (contador) contador.textContent = t('COMENTARIO_LIMITE', meus);
+  const campo = $('texto-comentario');
+  const botao = $('btn-comentar');
+  if (campo) campo.disabled = meus >= 2;
+  if (botao) botao.disabled = meus >= 2;
+
   const box = $('comentarios');
   box.textContent = '';
   if (lista.length === 0) {

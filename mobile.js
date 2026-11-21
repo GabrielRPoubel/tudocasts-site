@@ -12,7 +12,8 @@ async function descobrirApi() {
     const resposta = await fetch('/tunnel-url.json', { cache: 'no-store' });
     if (resposta.ok) {
       const dados = await resposta.json();
-      if (dados.url && /^https:\/\/[a-z0-9-]+\.trycloudflare\.com$/i.test(dados.url)) API_BASE = dados.url;
+      if (dados.proxy && /^https:\/\/[a-z0-9.-]+\.workers\.dev$/i.test(dados.proxy)) API_BASE = dados.proxy;
+      else if (dados.url && /^https:\/\/[a-z0-9-]+\.trycloudflare\.com$/i.test(dados.url)) API_BASE = dados.url;
     }
   } catch (_) { /* sem URL publicada */ }
 }

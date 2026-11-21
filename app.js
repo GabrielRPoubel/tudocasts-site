@@ -10,24 +10,31 @@ const NO_PAGES = ['gabrielrpoubel.github.io', 'tudocasts.com.br', 'www.tudocasts
 let API_BASES = NO_PAGES ? ['http://localhost:3000', 'http://127.0.0.1:3000'] : [''];
 let API_BASE = API_BASES[0];
 let TUNNEL_URL = '';
+let TUNNEL_PROXY = '';
 
-async function buscarTunnelUrl() {
+async function buscarTunnelDados() {
   try {
     const resposta = await fetch('/tunnel-url.json', { cache: 'no-store' });
     if (resposta.ok) {
       const dados = await resposta.json();
-      if (dados.url && /^https:\/\/[a-z0-9-]+\.trycloudflare\.com$/i.test(dados.url)) return dados.url;
+      return {
+        url: dados.url && /^https:\/\/[a-z0-9-]+\.trycloudflare\.com$/i.test(dados.url) ? dados.url : '',
+        proxy: dados.proxy && /^https:\/\/[a-z0-9.-]+\.workers\.dev$/i.test(dados.proxy) ? dados.proxy : '',
+      };
     }
-  } catch (_) { /* sem URL publicada */ }
-  return '';
+  } catch (_) { /* sem dados publicados */ }
+  return { url: '', proxy: '' };
 }
 
 async function descobrirApi() {
   if (!NO_PAGES) return;
-  TUNNEL_URL = await buscarTunnelUrl();
-  API_BASES = TUNNEL_URL
-    ? [TUNNEL_URL, 'http://localhost:3000', 'http://127.0.0.1:3000']
-    : ['http://localhost:3000', 'http://127.0.0.1:3000'];
+  const dados = await buscarTunnelDados();
+  TUNNEL_URL = dados.url;
+  TUNNEL_PROXY = dados.proxy;
+  API_BASES = [];
+  if (TUNNEL_PROXY) API_BASES.push(TUNNEL_PROXY);
+  if (TUNNEL_URL) API_BASES.push(TUNNEL_URL);
+  API_BASES.push('http://localhost:3000', 'http://127.0.0.1:3000');
   API_BASE = API_BASES[0];
 }
 const BASE_PATH = location.pathname.startsWith('/tudocasts-site') ? '/tudocasts-site' : '';
@@ -81,13 +88,9 @@ async function api(caminho, opcoes = {}, revalidar = true) {
   }
 
   if (NO_PAGES && revalidar) {
-    const atualizada = await buscarTunnelUrl();
-    if (atualizada && atualizada !== TUNNEL_URL) {
-      TUNNEL_URL = atualizada;
-      API_BASES = [atualizada, 'http://localhost:3000', 'http://127.0.0.1:3000'];
-      API_BASE = atualizada;
-      return api(caminho, opcoes, false);
-    }
+    const anterior = API_BASES.join('|');
+    await descobrirApi();
+    if (API_BASES.join('|') !== anterior) return api(caminho, opcoes, false);
   }
   throw ultimoErro || new Error('FALHA DE REDE');
 }

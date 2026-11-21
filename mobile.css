@@ -24,6 +24,10 @@ html, body {
 
 body.com-nav { padding-bottom: calc(78px + env(safe-area-inset-bottom)); }
 
+.aguardando-idioma .topo,
+.aguardando-idioma #app,
+.aguardando-idioma .nav-inferior { visibility: hidden; }
+
 button, input, textarea { font-family: inherit; font-size: 16px; }
 button { touch-action: manipulation; cursor: pointer; }
 a { color: var(--texto); }
@@ -48,7 +52,7 @@ a { color: var(--texto); }
 .topo-principal { display: flex; align-items: center; gap: 10px; min-height: 48px; }
 .topo h1 {
   flex: 1; margin: 0; color: #fff; font-size: 22px;
-  letter-spacing: 2px; font-weight: bold;
+  letter-spacing: 2px; font-weight: bold; cursor: pointer;
 }
 .btn-icone {
   min-width: 44px; min-height: 44px; padding: 0 8px;
@@ -120,7 +124,8 @@ a { color: var(--texto); }
 .campo input[type="checkbox"] { width: 24px; min-height: 24px; }
 .campo.check { display: flex; align-items: center; gap: 10px; min-height: 48px; }
 .campo.check > span { margin: 0; }
-.dica { color: var(--suave); font-size: 13px; margin: -6px 0 16px; }
+.dica { color: var(--suave); font-size: 13px; margin: -6px 0 20px; }
+.dica:last-child { margin-bottom: 28px; }
 .botoes-form { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
 .contador { color: var(--suave); font-size: 12px; font-weight: normal; }
 
@@ -177,7 +182,6 @@ a { color: var(--texto); }
   display: flex; align-items: center; justify-content: center;
 }
 .nav-inferior button.ativo { color: #fff; border-top-color: #fff; }
-
 .nav-inferior svg {
   width: 26px; height: 26px;
   fill: none; stroke: currentColor; stroke-width: 2;

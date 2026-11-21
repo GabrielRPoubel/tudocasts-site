@@ -149,6 +149,7 @@ function aplicarTraducao() {
     b.classList.toggle('ativo', b.dataset.lang === idiomaAtual);
   });
   $('btn-idioma').setAttribute('aria-expanded', String(!$('menu-idioma').hidden));
+  document.documentElement.classList.remove('aguardando-idioma');
 }
 
 function atualizarCabecalho() {
@@ -173,6 +174,7 @@ function atualizarCabecalho() {
 
 function irPara(view) {
   if (view === 'upload' && !state.me) view = 'conta';
+  if (view === 'conta' || view === 'upload') msg('');
   player.pause();
   state.tocando = null;
   state.view = view;
@@ -265,15 +267,13 @@ function renderFeed(app) {
     acoes.appendChild(botao(t('DOWNLOAD'), () => baixar(p)));
 
     if (state.me) {
-      const fav = botao('', () => marcar(p, 'favorito'),
-        state.favoritos.includes(p.id) ? 'ativo' : '');
-      fav.appendChild(icone('star', state.favoritos.includes(p.id)));
+      const fav = botao(state.favoritos.includes(p.id) ? '\u2605' : '\u2606',
+        () => marcar(p, 'favorito'), state.favoritos.includes(p.id) ? 'ativo' : '');
       fav.setAttribute('aria-label', t('FAVORITO_TITLE'));
       acoes.appendChild(fav);
 
-      const dep = botao('', () => marcar(p, 'depois'),
-        state.depois.includes(p.id) ? 'ativo' : '');
-      dep.appendChild(icone('clock', state.depois.includes(p.id)));
+      const dep = botao(state.depois.includes(p.id) ? '\u2317' : '\u2314',
+        () => marcar(p, 'depois'), state.depois.includes(p.id) ? 'ativo' : '');
       dep.setAttribute('aria-label', t('DEPOIS_TITLE'));
       acoes.appendChild(dep);
     }
@@ -327,7 +327,6 @@ function renderUpload(app) {
 
 function renderConta(app) {
   if (!state.me) {
-    app.appendChild(el('p', 'secao-titulo', t('ENTRAR_TITULO')));
     app.appendChild(el('p', 'dica', t('DICA_LOGIN')));
 
     const usuario = el('input'); usuario.type = 'text'; usuario.id = 'login-usuario'; usuario.maxLength = 24; usuario.autocomplete = 'username';
@@ -660,11 +659,15 @@ async function sair() {
 }
 
 $('btn-voltar').addEventListener('click', () => {
-  if (state.view === 'episodio') {
-    if (document.referrer && document.referrer.includes('/mobile')) history.back();
-    else location.href = urlComIdioma('/mobile.html');
-  } else {
-    irPara('feed');
+  if (state.view === 'episodio') location.href = urlComIdioma('/mobile.html');
+  else irPara('feed');
+});
+
+$('titulo-app').addEventListener('click', () => { location.href = urlComIdioma('/mobile.html'); });
+$('titulo-app').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    location.href = urlComIdioma('/mobile.html');
   }
 });
 
@@ -702,9 +705,17 @@ $('btn-idioma').addEventListener('click', () => {
 });
 document.querySelectorAll('.menu-idioma button').forEach((b) => {
   b.addEventListener('click', () => {
-    const destino = new URL(location.href);
-    destino.searchParams.set('lang', b.dataset.lang);
-    location.href = destino.toString();
+    const params = new URLSearchParams();
+    params.set('lang', b.dataset.lang);
+    if (new URLSearchParams(location.search).has('mobile')) params.set('mobile', '1');
+    if (state.view === 'episodio' && state.episodio) {
+      params.set('ep', state.episodio.ownerLogin + '/' + slug(state.episodio.title));
+    } else {
+      const ep = new URLSearchParams(location.search).get('ep');
+      if (ep) params.set('ep', ep);
+      if (state.filtroUsuario) params.set('user', state.filtroUsuario);
+    }
+    location.href = '/mobile.html?' + params.toString();
   });
 });
 

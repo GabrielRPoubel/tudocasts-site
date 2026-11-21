@@ -57,7 +57,22 @@ button:hover { background: #e6e6e6; color: #000; }
   margin: 6px auto;
   padding: 6px 8px;
 }
-.auth { border: 1px solid #808080; display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
+.auth {
+  border: 1px solid #808080;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 4px 6px;
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: thin;
+}
+#campos-login, #botoes-login { display: flex; align-items: center; gap: 4px; flex: 0 1 auto; min-width: 0; }
+.auth input { flex: 1 1 80px; min-width: 50px; width: auto; }
+.auth button { flex: 0 0 auto; }
+#quem { flex: 0 1 auto; overflow: hidden; text-overflow: ellipsis; }
+#trocar-panel { flex-wrap: wrap; overflow-x: visible; }
+#trocar-panel input { flex: 1 1 120px; }
 .status { border: 1px dashed #666666; min-height: 17px; overflow-wrap: anywhere; }
 .upload { border: 1px dashed #a6a6a6; color: #d9d9d9; }
 .upload fieldset { border: 1px solid #a6a6a6; }
@@ -171,4 +186,6 @@ footer p { margin: 2px 0; }
 @media (max-width: 900px) {
   #layout, #layout tbody, #layout tr, #layout td { display: block; width: 100% !important; }
   .logo { font-size: 28px; letter-spacing: 3px; margin: 6px auto 10px; }
+  .auth { font-size: 11px; gap: 3px 4px; }
+  .auth input, .auth button { font-size: 11px; padding: 2px 3px; }
 }

@@ -116,6 +116,7 @@ footer {
 }
 footer p { margin: 2px 0; }
 .pisca { color: #ffffff; animation: pisca 1s steps(2, start) infinite; }
+.aviso-legal { font-size: 11px; color: #808080; margin-top: 8px; line-height: 1.5; }
 @keyframes pisca { to { visibility: hidden; } }
 
 .busca { max-width: 980px; margin: 6px auto; padding: 6px 8px; border: 1px solid #666; }

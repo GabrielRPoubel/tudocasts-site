@@ -11,15 +11,20 @@ let API_BASES = NO_PAGES ? ['http://localhost:3000', 'http://127.0.0.1:3000'] : 
 let API_BASE = API_BASES[0];
 let TUNNEL_URL = '';
 
-async function descobrirApi() {
-  if (!NO_PAGES) return;
+async function buscarTunnelUrl() {
   try {
     const resposta = await fetch('/tunnel-url.json', { cache: 'no-store' });
     if (resposta.ok) {
       const dados = await resposta.json();
-      if (dados.url && /^https:\/\/[a-z0-9-]+\.trycloudflare\.com$/i.test(dados.url)) TUNNEL_URL = dados.url;
+      if (dados.url && /^https:\/\/[a-z0-9-]+\.trycloudflare\.com$/i.test(dados.url)) return dados.url;
     }
   } catch (_) { /* sem URL publicada */ }
+  return '';
+}
+
+async function descobrirApi() {
+  if (!NO_PAGES) return;
+  TUNNEL_URL = await buscarTunnelUrl();
   API_BASES = TUNNEL_URL
     ? [TUNNEL_URL, 'http://localhost:3000', 'http://127.0.0.1:3000']
     : ['http://localhost:3000', 'http://127.0.0.1:3000'];
@@ -48,7 +53,7 @@ function msg(texto, erro) {
   el.style.color = erro ? '#ffffff' : '#b3b3b3';
 }
 
-async function api(caminho, opcoes = {}) {
+async function api(caminho, opcoes = {}, revalidar = true) {
   const headers = Object.assign({}, opcoes.headers || {});
   if (state.token) headers.Authorization = 'Bearer ' + state.token;
   if (opcoes.body && !(opcoes.body instanceof FormData)) headers['Content-Type'] = 'application/json';
@@ -57,7 +62,9 @@ async function api(caminho, opcoes = {}) {
   for (const base of API_BASES) {
     try {
       const init = { ...opcoes, headers };
-      if (NO_PAGES) init.targetAddressSpace = 'loopback';
+      if (NO_PAGES && /^http:\/\/(localhost|127\.0\.0\.1)(:|\/)/.test(base)) {
+        init.targetAddressSpace = 'loopback';
+      }
       const resposta = await fetch(base + caminho, init);
       let dados = {};
       try { dados = await resposta.json(); } catch (_) { /* resposta sem JSON */ }
@@ -70,6 +77,16 @@ async function api(caminho, opcoes = {}) {
     } catch (e) {
       if (e.status) throw e;
       ultimoErro = e;
+    }
+  }
+
+  if (NO_PAGES && revalidar) {
+    const atualizada = await buscarTunnelUrl();
+    if (atualizada && atualizada !== TUNNEL_URL) {
+      TUNNEL_URL = atualizada;
+      API_BASES = [atualizada, 'http://localhost:3000', 'http://127.0.0.1:3000'];
+      API_BASE = atualizada;
+      return api(caminho, opcoes, false);
     }
   }
   throw ultimoErro || new Error('FALHA DE REDE');
@@ -158,6 +175,11 @@ function mostrarIndisponivel() {
   aviso.className = 'aviso-servidor';
   aviso.appendChild(Object.assign(document.createElement('h3'), { textContent: t('SERVIDOR_OFF_TITULO') }));
   aviso.appendChild(Object.assign(document.createElement('p'), { textContent: t('SERVIDOR_OFF_DICA') }));
+  if (NO_PAGES) {
+    aviso.appendChild(Object.assign(document.createElement('p'), {
+      textContent: 'API: ' + (API_BASES[0] || 'não descoberta'),
+    }));
+  }
 
   const links = document.createElement('div');
   links.className = 'aviso-links';

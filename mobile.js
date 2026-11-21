@@ -353,7 +353,7 @@ function renderConta(app) {
     botoes.appendChild(botao(t('ENTRAR'), () => autenticar('/api/login', usuario, senha), 'primario largo'));
     botoes.appendChild(botao(t('CRIAR_CONTA'), () => autenticar('/api/register', usuario, senha), 'largo'));
     app.appendChild(botoes);
-    app.appendChild(el('p', 'dica', t('ESQUECEU')));
+    app.appendChild(el('p', 'dica', t('SEM_RECUPERACAO')));
     setTimeout(() => usuario.focus(), 0);
     return;
   }

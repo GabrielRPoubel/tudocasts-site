@@ -1,5 +1,7 @@
 /* TUDOCASTS — estética de internet primitiva: preto, branco e cinza. */
 
+*, *::before, *::after { box-sizing: border-box; }
+
 html, body {
   background: #000;
   color: #e6e6e6;
@@ -25,13 +27,14 @@ html, body {
 a { color: #ffffff; text-decoration: underline; }
 a:visited { color: #a6a6a6; }
 
-input, button {
+input, button, textarea {
   background: #000;
   color: #e6e6e6;
   border: 1px solid #808080;
   font-family: inherit;
   font-size: 13px;
   padding: 3px 5px;
+  max-width: 100%;
 }
 input::placeholder { color: #666666; }
 button { cursor: pointer; padding: 3px 9px; }
@@ -54,8 +57,8 @@ button:hover { background: #e6e6e6; color: #000; }
   margin: 6px auto;
   padding: 6px 8px;
 }
-.auth { border: 1px solid #808080; }
-.status { border: 1px dashed #666666; min-height: 17px; }
+.auth { border: 1px solid #808080; display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
+.status { border: 1px dashed #666666; min-height: 17px; overflow-wrap: anywhere; }
 .upload { border: 1px dashed #a6a6a6; color: #d9d9d9; }
 .upload fieldset { border: 1px solid #a6a6a6; }
 .upload legend { color: #ffffff; font-weight: bold; }
@@ -63,10 +66,11 @@ button:hover { background: #e6e6e6; color: #000; }
 .upload input::placeholder { color: #737373; }
 .upload button { border-color: #a6a6a6; color: #ffffff; }
 .upload button:hover { background: #d9d9d9; color: #000; }
-.upload label { display: inline-block; margin: 3px 6px 3px 0; }
-.upload .campo-descricao { display: block; margin: 6px 0; }
+.upload label { display: inline-block; margin: 3px 6px 3px 0; max-width: 100%; overflow-wrap: anywhere; }
+.upload .campo-descricao { display: block; margin: 6px 0; width: 100%; }
 .upload textarea {
-  width: 70%;
+  width: 100%;
+  max-width: 100%;
   min-height: 80px;
   resize: vertical;
   background: #000;
@@ -81,8 +85,9 @@ button:hover { background: #e6e6e6; color: #000; }
 #quem { margin-left: 10px; color: #ffffff; font-weight: bold; }
 #quem a { color: #ffffff; }
 
-#layout { max-width: 980px; margin: 0 auto; }
-.caixa { border: 1px solid #808080; padding: 6px 8px; min-height: 120px; }
+#layout { max-width: 980px; margin: 0 auto; table-layout: auto; }
+#sidebar { width: 230px; min-width: 170px; }
+.caixa { border: 1px solid #808080; padding: 6px 8px; min-height: 120px; min-width: 0; overflow-wrap: anywhere; }
 .usuarios { margin-top: 6px; }
 .usuario { display: block; padding: 2px 4px; cursor: pointer; color: #ffffff; }
 .usuario:hover { background: #262626; }
@@ -93,20 +98,24 @@ button:hover { background: #e6e6e6; color: #000; }
 table.feed {
   border-collapse: collapse;
   width: 100%;
+  max-width: 100%;
   margin-top: 6px;
+  table-layout: auto;
 }
 table.feed th, table.feed td {
   border: 1px solid #808080;
   padding: 4px 7px;
   text-align: left;
   vertical-align: middle;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 table.feed th { color: #ffffff; }
 table.feed tr:hover td { background: #1a1a1a; }
-.titulo { font-weight: bold; }
+.titulo { font-weight: bold; min-width: 180px; }
 .dono { font-size: 11px; color: #b3b3b3; font-weight: normal; }
 .privado { font-size: 11px; color: #a6a6a6; }
-.controles { font-size: 11px; margin-left: 6px; }
+.controles { font-size: 11px; margin-left: 6px; display: inline-flex; flex-wrap: wrap; gap: 2px 4px; }
 .controles a { color: #d9d9d9; }
 .btn-play {
   border: 1px solid #808080;
@@ -130,11 +139,11 @@ footer p { margin: 2px 0; }
 .aviso-legal { font-size: 11px; color: #808080; margin-top: 8px; line-height: 1.5; }
 @keyframes pisca { to { visibility: hidden; } }
 
-.busca { max-width: 980px; margin: 6px auto; padding: 6px 8px; border: 1px solid #666; }
-.busca input { min-width: 320px; }
+.busca { max-width: 980px; margin: 6px auto; padding: 6px 8px; border: 1px solid #666; overflow-wrap: anywhere; }
+.busca input { min-width: 180px; width: 45%; max-width: 100%; }
 #busca-info { margin-left: 10px; color: #a6a6a6; font-size: 11px; }
 #trocar-panel input { margin: 0 4px; }
-.marcador { font-size: 13px; margin-left: 5px; text-decoration: none; }
+.marcador { font-size: 13px; margin-left: 5px; text-decoration: none; white-space: nowrap; }
 .marcador.off { color: #666; }
 .marcador.on { color: #fff; }
 .mod-tag { color: #fff; border: 1px solid #fff; padding: 0 3px; font-size: 10px; margin-left: 4px; }
@@ -159,7 +168,7 @@ footer p { margin: 2px 0; }
 .comentario .data { color: #808080; font-size: 10px; margin-left: 6px; }
 .comentario .texto { margin-top: 3px; }
 #novo-comentario { width: 70%; }
-@media (max-width: 700px) {
+@media (max-width: 900px) {
   #layout, #layout tbody, #layout tr, #layout td { display: block; width: 100% !important; }
   .logo { font-size: 28px; letter-spacing: 3px; margin: 6px auto 10px; }
 }

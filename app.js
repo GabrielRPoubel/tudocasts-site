@@ -161,7 +161,7 @@ function renderUsuarios() {
     box.appendChild(linha);
 
     if (state.me && state.me.mod && u.login !== state.me.login) {
-      const apagar = link('[apagar conta]', null, () => apagarConta(u));
+      const apagar = link(t('APAGAR_CONTA'), null, () => apagarConta(u));
       apagar.style.fontSize = '10px';
       box.appendChild(apagar);
     }

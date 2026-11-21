@@ -140,7 +140,7 @@ async function carregar(inicial) {
     renderAuth();
     renderUsuarios();
     renderFeed();
-    if (inicial && NO_PAGES) msg(t('MODO_PAGES'));
+    if (inicial && NO_PAGES) msg(t('TERCEIROS'));
   } catch (e) {
     msg('', true);
     mostrarIndisponivel();

@@ -6,7 +6,14 @@ const $ = (id) => document.getElementById(id);
 const player = $('player');
 
 // No Pages, a interface é estática e o backend vive no PC do dono.
-const NO_PAGES = location.hostname.toLowerCase().endsWith('.github.io');
+const DOMINIOS_PUBLICADOS = [
+  'gabrielrpoubel.github.io',
+  'tudocasts.com.br',
+  'www.tudocasts.com.br',
+  'tudocasts.com',
+  'www.tudocasts.com',
+];
+const NO_PAGES = DOMINIOS_PUBLICADOS.includes(location.hostname.toLowerCase());
 const API_BASE = NO_PAGES ? 'http://localhost:3000' : '';
 
 const state = {

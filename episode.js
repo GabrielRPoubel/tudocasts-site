@@ -50,6 +50,10 @@ function urlEpisodio(p) {
   return BASE_PATH + '/' + encodeURIComponent(p.ownerLogin) + '/' + encodeURIComponent(slug(p.title));
 }
 
+function urlDoAutor(login) {
+  return BASE_PATH + '/?user=' + encodeURIComponent(login);
+}
+
 function tempo(segundos) {
   const total = Math.max(0, Math.floor(Number(segundos) || 0));
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
@@ -82,7 +86,9 @@ function renderComentarios(lista) {
   for (const c of lista) {
     const div = no('div', 'comentario');
     const cab = no('div');
-    cab.appendChild(no('span', 'quem', '@' + c.userLogin));
+    const autorComentario = link('@' + c.userLogin, urlDoAutor(c.userLogin));
+    autorComentario.className = 'quem';
+    cab.appendChild(autorComentario);
     cab.appendChild(no('span', 'data', new Date(c.createdAt).toLocaleString('pt-BR')));
     if (c.removivel) {
       const apagar = link(' [remover]', '#');
@@ -177,7 +183,10 @@ async function main() {
     $('pagina').hidden = false;
     $('status-ep').hidden = true;
     $('titulo').textContent = episodio.title;
-    $('autor').textContent = 'por @' + episodio.ownerLogin + ' · ' + tempo(episodio.duration);
+    $('autor').textContent = 'por ';
+    const autorLink = link('@' + episodio.ownerLogin, urlDoAutor(episodio.ownerLogin));
+    $('autor').appendChild(autorLink);
+    $('autor').appendChild(document.createTextNode(' · ' + tempo(episodio.duration)));
     $('descricao').textContent = episodio.description || '(SEM DESCRIÇÃO)';
 
     if (episodio.image) {

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TUDOCASTS</title>
   <link rel="icon" type="image/png" href="favicon.png">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=20261121e">
 </head>
 <body>
 
@@ -23,6 +23,9 @@
     <button id="btn-entrar" type="button">ENTRAR</button>
     <button id="btn-criar" type="button">CRIAR CONTA</button>
   </span>
+  <button id="btn-upload-panel" type="button" hidden>UPLOAD</button>
+  <button id="btn-favoritos" type="button">★ FAVORITOS</button>
+  <button id="btn-depois" type="button">◷ VER DEPOIS</button>
   <button id="btn-trocar" type="button" hidden>TROCAR SENHA</button>
   <button id="btn-sair" type="button" hidden>SAIR</button>
   <span id="quem"></span>
@@ -48,7 +51,7 @@
     <legend>:: NOVO EPISÓDIO ::</legend>
     <label>ARQUIVO: <input id="arquivo" type="file" accept="audio/*" required></label>
     <label>TÍTULO: <input id="titulo" type="text" maxlength="120" placeholder="(deixe em branco = nome do arquivo)"></label>
-    <label class="campo-descricao">DESCRIÇÃO (ATÉ 300):<br><textarea id="descricao" rows="4" maxlength="300" placeholder="sobre o episódio"></textarea></label>
+    <label class="campo-descricao">DESCRIÇÃO (<span id="descricao-contador">300 letras restantes</span>):<br><textarea id="descricao" rows="4" maxlength="300" placeholder="sobre o episódio"></textarea></label>
     <label>IMAGEM (ATÉ 1MB): <input id="imagem" type="file" accept="image/*"></label>
     <label><input id="publico" type="checkbox" checked> PÚBLICO</label>
     <button id="btn-upload" type="button">&gt;&gt; FAZER UPLOAD &lt;&lt;</button>
@@ -80,6 +83,6 @@
 </footer>
 
 <audio id="player" preload="none"></audio>
-<script src="app.js"></script>
+<script src="app.js?v=20261121e"></script>
 </body>
 </html>

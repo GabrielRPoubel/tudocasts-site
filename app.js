@@ -24,7 +24,8 @@ const state = {
   podcasts: [],
   favoritos: [],
   depois: [],
-  filter: null,
+  filter: new URLSearchParams(location.search).get('user') || null,
+  modo: null,
   busca: '',
   ordemAsc: false,
   tocando: null,
@@ -116,12 +117,20 @@ function renderAuth() {
   $('botoes-login').hidden = logado;
   $('btn-sair').hidden = !logado;
   $('btn-trocar').hidden = !logado;
-  $('upload-panel').hidden = !logado;
+  $('btn-upload-panel').hidden = !logado;
+  $('upload-panel').hidden = true;
   if (!logado) $('trocar-panel').hidden = true;
+
+  $('btn-favoritos').classList.toggle('ativo', state.modo === 'favoritos');
+  $('btn-depois').classList.toggle('ativo', state.modo === 'depois');
 
   $('quem').textContent = '';
   if (logado) {
-    $('quem').appendChild(document.createTextNode(':: LOGADO COMO ' + state.me.login.toUpperCase() + ' '));
+    $('quem').appendChild(document.createTextNode(':: LOGADO COMO '));
+    const nome = no('a', null, state.me.login.toUpperCase());
+    nome.href = BASE_PATH + '/?user=' + encodeURIComponent(state.me.login);
+    $('quem').appendChild(nome);
+    $('quem').appendChild(document.createTextNode(' '));
     if (state.me.mod) $('quem').appendChild(no('span', 'mod-tag', 'MOD'));
   }
 }
@@ -132,7 +141,7 @@ function renderUsuarios() {
 
   const todos = no('a', 'usuario' + (state.filter === null ? ' ativo' : null), '>> TODOS');
   todos.href = '#';
-  todos.addEventListener('click', (e) => { e.preventDefault(); state.filter = null; carregar(); });
+  todos.addEventListener('click', (e) => { e.preventDefault(); state.filter = null; state.modo = null; carregar(); });
   box.appendChild(todos);
 
   if (state.users.length === 0) {
@@ -146,6 +155,7 @@ function renderUsuarios() {
     linha.appendChild(no('span', 'qtd', '[' + u.count + ']'));
     linha.addEventListener('click', (e) => {
       e.preventDefault();
+      state.modo = null;
       state.filter = state.filter === u.login ? null : u.login;
       carregar();
     });
@@ -161,6 +171,8 @@ function renderUsuarios() {
 
 function listaVisivel() {
   let lista = state.podcasts.slice();
+  if (state.modo === 'favoritos') lista = lista.filter((p) => state.favoritos.includes(p.id));
+  if (state.modo === 'depois') lista = lista.filter((p) => state.depois.includes(p.id));
   const q = state.busca.trim().toLowerCase();
   if (q) {
     lista = lista.filter((p) =>
@@ -172,8 +184,11 @@ function listaVisivel() {
 
 function renderFeed() {
   $('feed-titulo').innerHTML = '';
-  $('feed-titulo').appendChild(no('b', null,
-    state.filter ? ':: FEED DE ' + state.filter.toUpperCase() + ' ::' : ':: FEED GERAL ::'));
+  const tituloFeed = state.modo === 'favoritos' ? ':: FAVORITOS ::'
+    : state.modo === 'depois' ? ':: VER DEPOIS ::'
+      : state.filter ? ':: FEED DE ' + state.filter.toUpperCase() + ' ::'
+        : ':: FEED GERAL ::';
+  $('feed-titulo').appendChild(no('b', null, tituloFeed));
 
   const ordem = $('ordem');
   ordem.textContent = '';
@@ -215,7 +230,10 @@ function renderFeed() {
     tituloLink.rel = 'noopener';
     tdTitulo.appendChild(tituloLink);
     tdTitulo.appendChild(document.createTextNode(' '));
-    tdTitulo.appendChild(no('span', 'dono', '[@' + p.ownerLogin + ']'));
+    const autor = no('a', 'dono', '[@' + p.ownerLogin + ']');
+    autor.href = BASE_PATH + '/?user=' + encodeURIComponent(p.ownerLogin);
+    autor.title = 'Ver feed de ' + p.ownerLogin;
+    tdTitulo.appendChild(autor);
     if (!p.isPublic) tdTitulo.appendChild(no('span', 'privado', ' [PRIVADO]'));
 
     if (state.me) {
@@ -392,11 +410,24 @@ async function trocarSenha() {
   }
 }
 
+function abrirLista(tipo) {
+  if (!state.me) return msg('FAÇA LOGIN PARA VER SUA LISTA.');
+  state.modo = state.modo === tipo ? null : tipo;
+  state.filter = null;
+  renderAuth();
+  renderFeed();
+}
+
+function alternarUpload() {
+  $('upload-panel').hidden = !$('upload-panel').hidden;
+}
+
 async function sair() {
   try { await api('/api/logout', { method: 'POST' }); } catch (_) { /* já saiu */ }
   state.token = '';
   state.me = null;
   state.filter = null;
+  state.modo = null;
   localStorage.removeItem('podcast_exe_token');
   msg('VOCÊ SAIU. ATÉ A PRÓXIMA.');
   carregar();
@@ -453,6 +484,7 @@ async function fazerUpload() {
     $('imagem').value = '';
     $('titulo').value = '';
     $('descricao').value = '';
+    $('descricao-contador').textContent = '300 letras restantes';
     msg('EPISÓDIO PUBLICADO NO FEED!');
     await carregar();
   } catch (e) { msg(e.message, e.status ? false : true); }
@@ -466,6 +498,12 @@ $('btn-trocar').addEventListener('click', () => { $('trocar-panel').hidden = !$(
 $('btn-cancela-senha').addEventListener('click', () => { $('trocar-panel').hidden = true; });
 $('btn-confirmar-senha').addEventListener('click', trocarSenha);
 $('busca').addEventListener('input', () => { state.busca = $('busca').value; renderFeed(); });
+$('descricao').addEventListener('input', () => {
+  $('descricao-contador').textContent = (300 - $('descricao').value.length) + ' letras restantes';
+});
+$('btn-upload-panel').addEventListener('click', alternarUpload);
+$('btn-favoritos').addEventListener('click', () => abrirLista('favoritos'));
+$('btn-depois').addEventListener('click', () => abrirLista('depois'));
 
 $('senha').addEventListener('keydown', (e) => { if (e.key === 'Enter') autenticar('/api/login'); });
 $('login').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('senha').focus(); });

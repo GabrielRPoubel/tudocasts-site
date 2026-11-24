@@ -6,7 +6,37 @@ const token = localStorage.getItem('podcast_exe_token') || '';
 
 const NO_PAGES = ['gabrielrpoubel.github.io', 'tudocasts.com.br', 'www.tudocasts.com.br', 'tudocasts.com', 'www.tudocasts.com']
   .includes(location.hostname.toLowerCase());
-const API_BASE = NO_PAGES ? 'http://localhost:3000' : '';
+let API_BASES = NO_PAGES ? ['http://localhost:3000', 'http://127.0.0.1:3000'] : [''];
+let API_BASE = API_BASES[0];
+let TUNNEL_URL = '';
+let TUNNEL_PROXY = '';
+
+async function buscarTunnelDados() {
+  try {
+    const resposta = await fetch('/tunnel-url.json', { cache: 'no-store' });
+    if (resposta.ok) {
+      const dados = await resposta.json();
+      return {
+        url: dados.url && /^https:\/\/[a-z0-9-]+\.trycloudflare\.com$/i.test(dados.url) ? dados.url : '',
+        proxy: dados.proxy && /^https:\/\/[a-z0-9.-]+\.workers\.dev$/i.test(dados.proxy) ? dados.proxy : '',
+      };
+    }
+  } catch (_) { /* sem dados publicados */ }
+  return { url: '', proxy: '' };
+}
+
+async function descobrirApi() {
+  if (!NO_PAGES) return;
+  const dados = await buscarTunnelDados();
+  TUNNEL_URL = dados.url;
+  TUNNEL_PROXY = dados.proxy;
+  API_BASES = [];
+  if (TUNNEL_PROXY) API_BASES.push(TUNNEL_PROXY);
+  if (TUNNEL_URL) API_BASES.push(TUNNEL_URL);
+  API_BASES.push('http://localhost:3000', 'http://127.0.0.1:3000');
+  API_BASE = API_BASES[0];
+}
+
 const BASE_PATH = location.pathname.startsWith('/tudocasts-site') ? '/tudocasts-site' : '';
 
 function statusEp(texto, erro) {
@@ -15,21 +45,39 @@ function statusEp(texto, erro) {
   el.style.color = erro ? '#fff' : '#b3b3b3';
 }
 
-async function api(caminho, opcoes = {}) {
+async function api(caminho, opcoes = {}, revalidar = true) {
   const headers = Object.assign({}, opcoes.headers || {});
   if (token) headers.Authorization = 'Bearer ' + token;
   if (opcoes.body && !(opcoes.body instanceof FormData)) headers['Content-Type'] = 'application/json';
-  const init = { ...opcoes, headers };
-  if (NO_PAGES) init.targetAddressSpace = 'loopback';
-  const resposta = await fetch(API_BASE + caminho, init);
-  let dados = {};
-  try { dados = await resposta.json(); } catch (_) { /* vazio */ }
-  if (!resposta.ok) {
-    const e = new Error(dados.error || 'ERRO HTTP ' + resposta.status);
-    e.status = resposta.status;
-    throw e;
+
+  let ultimoErro = null;
+  for (const base of API_BASES) {
+    try {
+      const init = { ...opcoes, headers };
+      if (NO_PAGES && /^http:\/\/(localhost|127\.0\.0\.1)(:|\/)/.test(base)) {
+        init.targetAddressSpace = 'loopback';
+      }
+      const resposta = await fetch(base + caminho, init);
+      let dados = {};
+      try { dados = await resposta.json(); } catch (_) { /* resposta sem JSON */ }
+      if (!resposta.ok) {
+        const erro = new Error(dados.error || 'ERRO HTTP ' + resposta.status);
+        erro.status = resposta.status;
+        throw erro;
+      }
+      return dados;
+    } catch (e) {
+      if (e.status) throw e;
+      ultimoErro = e;
+    }
   }
-  return dados;
+
+  if (NO_PAGES && revalidar) {
+    const anterior = API_BASES.join('|');
+    await descobrirApi();
+    if (API_BASES.join('|') !== anterior) return api(caminho, opcoes, false);
+  }
+  throw ultimoErro || new Error('FALHA DE REDE');
 }
 
 function slug(texto) {
@@ -291,5 +339,8 @@ $('btn-comentar').addEventListener('click', comentar);
 $('texto-comentario').addEventListener('keydown', (e) => { if (e.key === 'Enter') comentar(); });
 window.addEventListener('unhandledrejection', () => statusEp('', true));
 
-aplicarTraducao();
-main();
+(async function iniciar() {
+  await descobrirApi();
+  aplicarTraducao();
+  await main();
+})();
